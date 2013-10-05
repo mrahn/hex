@@ -56,13 +56,7 @@ point_type rect_coord (point_type const& p)
                     ,      p.x() + p.y()
                     );
 }
-point_type hex_coord (point_type const& p)
-{
-  return point_type ( (2 * p.y() + p.x()) / 4
-                    , (2 * p.y() - p.x()) / 4
-                    );
-}
-std::pair<point_type, point_type> hex_coord2 (point_type const& p)
+std::pair<point_type, point_type> hex_coord (point_type const& p)
 {
   return std::make_pair ( point_type ( (2 * p.y() + p.x()) / 4
                                      , (2 * p.y() - p.x()) / 4
@@ -308,8 +302,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
     for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
     {
       point_type const p (y, x);
-      point_type const h (hex_coord (p));
-      auto const h2 (hex_coord2 (p));
+      auto const h2 (hex_coord (p));
 
       if (  h2.second.x() == 0
          && h2.second.y() == 0
