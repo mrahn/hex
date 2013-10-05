@@ -352,9 +352,9 @@ bool _winning (position_type& pos)
   return true;
 }
 
-int main()
+int main (int argc, char** argv)
 {
-  position_type b (2);
+  position_type b ((argc > 1) ? atoi (argv[1]) : 2);
 
   BOOST_FOREACH (point_type const& f, board (b.size()))
   {
