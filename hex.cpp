@@ -18,15 +18,6 @@ std::ostream& operator<< (std::ostream& os, const player_type& pl)
   default: return os << ".";
   }
 }
-player_type other (player_type pl)
-{
-  switch (pl)
-  {
-  case L: return R;
-  case R: return L;
-  default: throw std::runtime_error ("other (N)");
-  }
-}
 
 class position_type
 {
@@ -71,14 +62,14 @@ public:
 
     _winner = winner_from (x, y);
     _taken[x * (1 + SIZE) + y] = _player;
-    _player = other (_player);
+    _player = (_player == L) ? R : L;
   }
   void unput (int x, int y)
   {
     ++_cnt_unput;
     _winner = N;
     _taken[x * (1 + SIZE) + y] = N;
-    _player = other (_player);
+    _player = (_player == L) ? R : L;
   }
 
 private:
