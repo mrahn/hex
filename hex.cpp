@@ -34,7 +34,7 @@ public:
     , _cnt_put (0)
     , _cnt_unput (0)
     , _seen (new bool[LEN * LEN])
-    , _open (new int[2 * LEN * LEN])
+    , _open (new int[LEN * LEN])
   {
     std::fill (_taken, _taken + LEN * LEN, N);
   }
