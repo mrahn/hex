@@ -19,13 +19,14 @@ static char const* const show_player[3] = {"L", "R", "."};
 static player_type _player = L;
 static player_type _winner = N;
 
+static unsigned long _cnt_put = 0;
+static unsigned long _cnt_unput = 0;
+
 class position_type
 {
 public:
   position_type ()
     : _taken (new player_type[LEN * LEN])
-    , _cnt_put (0)
-    , _cnt_unput (0)
     , _seen (new bool[LEN * LEN])
     , _open (new int[LEN * LEN])
   {
@@ -33,7 +34,6 @@ public:
   }
   ~position_type()
   {
-    std::cout << "put " << _cnt_put << " unput " << _cnt_unput << std::endl;
     delete[] _taken;
     delete[] _seen;
     delete[] _open;
@@ -130,9 +130,6 @@ private:
 
   player_type* _taken;
 
-  unsigned long _cnt_put;
-  unsigned long _cnt_unput;
-
   bool* _seen;
   int* _open;
 };
@@ -213,4 +210,6 @@ int main()
       b.unput (f);
     }
   }
+
+  printf ("put %lu unput %lu\n", _cnt_unput, _cnt_unput);
 }
