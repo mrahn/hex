@@ -50,16 +50,6 @@ point_type operator- (point_type const& a, point_type const& b)
 {
   return point_type (a.x() - b.x(), a.y() - b.y());
 }
-std::pair<point_type, point_type> hex_coord (point_type const& p)
-{
-  return std::make_pair ( point_type ( (2 * p.y() + p.x()) / 4
-                                     , (2 * p.y() - p.x()) / 4
-                                     )
-                        , point_type ( (2 * p.y() + p.x()) % 4
-                                     , (2 * p.y() - p.x()) % 4
-                                     )
-                        );
-}
 
 typedef std::vector<point_type> points_type;
 
@@ -296,14 +286,16 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
     for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
     {
       point_type const p (y, x);
-      auto const h2 (hex_coord (p));
+      point_type const q ( (2 * p.y() + p.x()) / 4
+                         , (2 * p.y() - p.x()) / 4
+                         );
+      point_type const r ( (2 * p.y() + p.x()) % 4
+                         , (2 * p.y() - p.x()) % 4
+                         );
 
-      if (  h2.second.x() == 0
-         && h2.second.y() == 0
-         && in_range (pos.size(), h2.first)
-         )
+      if (r.x() == 0 && r.y() == 0 && in_range (pos.size(), q))
       {
-        os << pos.stone (h2.first);
+        os << pos.stone (q);
       }
       else
       {
