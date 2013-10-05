@@ -8,6 +8,7 @@ CFLAGS += -I$(JUDY_HOME)/include
 CFLAGS += $(CXXEXTRA)
 
 LDFLAGS += -L$(JUDY_HOME)/lib
+LDFLAGS += -Wl,--rpath -Wl,$(JUDY_HOME)/lib
 
 LIB += Judy
 
