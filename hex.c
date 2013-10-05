@@ -16,6 +16,7 @@
 #define N 2
 
 static char const* const show_player[3] = {"L", "R", "."};
+
 static uint8_t _player = L;
 static uint8_t _winner = N;
 
