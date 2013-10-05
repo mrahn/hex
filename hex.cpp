@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <boost/foreach.hpp>
-#include <boost/optional.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 
@@ -196,7 +195,7 @@ public:
   {
     return _winner;
   }
-  boost::optional<player_type> stone (point_type const& p) const
+  player_type stone (point_type const& p) const
   {
     auto it (_taken.find (p));
 
@@ -205,7 +204,7 @@ public:
       return it->second;
     }
 
-    return boost::none;
+    return N;
   }
 
   void put (point_type const& f)
@@ -255,9 +254,9 @@ private:
 
       BOOST_FOREACH (point_type const& n, neighbourN (size(), c.back()))
       {
-        auto n_pl (stone (n));
+        player_type n_pl (stone (n));
 
-        if (n_pl && *n_pl == player() && seen.insert (n).second)
+        if (n_pl != N && n_pl == player() && seen.insert (n).second)
         {
           open.push_back (n);
         }
@@ -301,16 +300,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
       if (rc.count (p))
       {
-        boost::optional<player_type> const pl (pos.stone (h));
-
-        if (pl)
-        {
-          os << *pl;
-        }
-        else
-        {
-          os << ".";
-        }
+        os << pos.stone (h);
       }
       else
       {
@@ -332,7 +322,7 @@ bool _winning (position_type& pos)
 
   BOOST_FOREACH (point_type const& f, board (pos.size()))
   {
-    if (not (pos.stone (f)))
+    if (pos.stone (f) == N)
     {
       pos.put (f);
       const bool w (_winning (pos));
@@ -354,7 +344,7 @@ int main()
 
   BOOST_FOREACH (point_type const& f, board (b.size()))
   {
-    if (not (b.stone (f)))
+    if (b.stone (f) == N)
     {
       b.put (f);
       if (_winning (b))
