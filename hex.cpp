@@ -34,6 +34,9 @@ void unput (int f)
   _player = 1 - _player;
 }
 
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
 player_type winner_from (int f)
 {
   for (int i (0); i < LEN * LEN; ++i)
@@ -65,12 +68,8 @@ player_type winner_from (int f)
     {                                                           \
       if (!_seen[LIN ((px + dx), (py + dy))])                   \
       {                                                         \
-        mi = std::min ( mi                                      \
-                      , (_player == L) ? (px + dx) : (py + dy)  \
-                      );                                        \
-        ma = std::max ( ma                                      \
-                      , (_player == L) ? (px + dx) : (py + dy)  \
-                      );                                        \
+        mi = MIN (mi, (_player == L) ? (px + dx) : (py + dy));  \
+        ma = MAX (ma, (_player == L) ? (px + dx) : (py + dy));  \
                                                                 \
         if (mi == 0 && ma == SIZE)                              \
         {                                                       \
