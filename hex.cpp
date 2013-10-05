@@ -179,6 +179,7 @@ public:
     , _taken (new player_type[(_size + 1) * (_size + 1)])
     , _cnt_put (0)
     , _cnt_unput (0)
+    , _seen (new bool[(_size + 1) * (_size + 1)])
   {
     std::fill (_taken, _taken + (_size + 1) * (_size + 1), N);
   }
@@ -186,6 +187,7 @@ public:
   {
     std::cout << "put " << _cnt_put << " unput " << _cnt_unput << std::endl;
     delete[] _taken;
+    delete[] _seen;
   }
   int size() const
   {
@@ -250,7 +252,8 @@ private:
   {
     points_type c;
     std::vector<point_type> open;
-    boost::unordered_set<point_type> seen;
+
+    std::fill (_seen, _seen + (_size + 1) * (_size + 1), false);
 
     open.push_back (f);
 
@@ -260,9 +263,14 @@ private:
 
       BOOST_FOREACH (point_type const& n, neighbourN (size(), c.back()))
       {
-        if (stone (n) == player() && seen.insert (n).second)
+        if (stone (n) == player())
         {
-          open.push_back (n);
+          if (!_seen[n.x() * (1 + _size) + n.y()])
+          {
+            _seen[n.x() * (1 + _size) + n.y()] = true;
+
+            open.push_back (n);
+          }
         }
       }
     }
@@ -277,6 +285,8 @@ private:
 
   unsigned long _cnt_put;
   unsigned long _cnt_unput;
+
+  bool* _seen;
 };
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
