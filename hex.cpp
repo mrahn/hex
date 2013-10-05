@@ -175,13 +175,16 @@ public:
     : _size (size)
     , _player (L)
     , _winner (N)
-    , _taken ()
+    , _taken (new player_type[(_size + 1) * (_size + 1)])
     , _cnt_put (0)
     , _cnt_unput (0)
-  {}
+  {
+    std::fill (_taken, _taken + (_size + 1) * (_size + 1), N);
+  }
   ~position_type()
   {
     std::cout << "put " << _cnt_put << " unput " << _cnt_unput << std::endl;
+    delete[] _taken;
   }
   int size() const
   {
@@ -197,18 +200,17 @@ public:
   }
   player_type stone (point_type const& p) const
   {
-    auto it (_taken.find (p));
+    assert (in_range (_size, p.x()));
+    assert (in_range (_size, p.y()));
 
-    if (it != _taken.end())
-    {
-      return it->second;
-    }
-
-    return N;
+    return _taken[p.x() * (1 + _size) + p.y()];
   }
 
   void put (point_type const& f)
   {
+    assert (in_range (_size, f.x()));
+    assert (in_range (_size, f.y()));
+
     if (++_cnt_put % 100000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
@@ -228,14 +230,17 @@ public:
       _winner = _player;
     }
 
-    _taken.insert (std::make_pair (f, _player));
+    _taken[f.x() * (1 + _size) + f.y()] = _player;
     _player = other (_player);
   }
   void unput (point_type const& f)
   {
+    assert (in_range (_size, f.x()));
+    assert (in_range (_size, f.y()));
+
     ++_cnt_unput;
     _winner = N;
-    _taken.erase (f);
+    _taken[f.x() * (1 + _size) + f.y()] = N;
     _player = other (_player);
   }
 
@@ -269,7 +274,7 @@ private:
   int _size;
   player_type _player;
   player_type _winner;
-  boost::unordered_map<point_type, player_type> _taken;
+  player_type* _taken;
 
   unsigned long _cnt_put;
   unsigned long _cnt_unput;
