@@ -34,6 +34,69 @@ void unput (int f)
   _player = 1 - _player;
 }
 
+player_type winner_from (int f)
+{
+  for (int i (0); i < LEN * LEN; ++i)
+  {
+    _seen[i] = 0;
+  }
+
+  int mi ((_player == L) ? X(f) : Y(f));
+  int ma ((_player == L) ? X(f) : Y(f));
+
+  int pos (0);
+  int end (0);
+
+  _open[end++] = X(f);
+  _open[end++] = Y(f);
+
+  _seen[f] = 1;
+
+  while (pos < end)
+  {
+    int const px (_open[pos++]);
+    int const py (_open[pos++]);
+
+#define DO(dx, dy)                                              \
+    if (  (px + dx) >= 0 && (px + dx) <= SIZE                   \
+       && (py + dy) >= 0 && (py + dy) <= SIZE                   \
+       && _taken[LIN ((px + dx), (py + dy))] == _player         \
+       )                                                        \
+    {                                                           \
+      if (!_seen[LIN ((px + dx), (py + dy))])                   \
+      {                                                         \
+        mi = std::min ( mi                                      \
+                      , (_player == L) ? (px + dx) : (py + dy)  \
+                      );                                        \
+        ma = std::max ( ma                                      \
+                      , (_player == L) ? (px + dx) : (py + dy)  \
+                      );                                        \
+                                                                \
+        if (mi == 0 && ma == SIZE)                              \
+        {                                                       \
+          return _player;                                       \
+        }                                                       \
+                                                                \
+        _open[end++] = (px + dx);                               \
+        _open[end++] = (py + dy);                               \
+                                                                \
+        _seen[LIN ((px + dx), (py + dy))] = 1;                  \
+      }                                                         \
+    }                                                           \
+
+    DO ( 0, 1);
+    DO ( 1, 1);
+    DO ( 1, 0);
+    DO ( 0,-1);
+    DO (-1,-1);
+    DO (-1, 0);
+
+#undef DO
+  }
+
+  return N;
+}
+
 class position_type
 {
 public:
@@ -52,70 +115,6 @@ public:
     _winner = winner_from (f);
     _taken[f] = _player;
     _player = 1 - _player;
-  }
-
-private:
-  player_type winner_from (int f) const
-  {
-    for (int i (0); i < LEN * LEN; ++i)
-    {
-      _seen[i] = 0;
-    }
-
-    int mi ((_player == L) ? X(f) : Y(f));
-    int ma ((_player == L) ? X(f) : Y(f));
-
-    int pos (0);
-    int end (0);
-
-    _open[end++] = X(f);
-    _open[end++] = Y(f);
-
-    _seen[f] = 1;
-
-    while (pos < end)
-    {
-      int const px (_open[pos++]);
-      int const py (_open[pos++]);
-
-#define DO(dx, dy)                                                      \
-      if (  (px + dx) >= 0 && (px + dx) <= SIZE                         \
-         && (py + dy) >= 0 && (py + dy) <= SIZE                         \
-         && _taken[LIN ((px + dx), (py + dy))] == _player               \
-         )                                                              \
-      {                                                                 \
-        if (!_seen[LIN ((px + dx), (py + dy))])                         \
-        {                                                               \
-          mi = std::min ( mi                                            \
-                        , (_player == L) ? (px + dx) : (py + dy)        \
-                        );                                              \
-          ma = std::max ( ma                                            \
-                        , (_player == L) ? (px + dx) : (py + dy)        \
-                        );                                              \
-                                                                        \
-          if (mi == 0 && ma == SIZE)                                    \
-          {                                                             \
-            return _player;                                             \
-          }                                                             \
-                                                                        \
-          _open[end++] = (px + dx);                                     \
-          _open[end++] = (py + dy);                                     \
-                                                                        \
-          _seen[LIN ((px + dx), (py + dy))] = 1;                        \
-        }                                                               \
-      }                                                                 \
-
-      DO ( 0, 1);
-      DO ( 1, 1);
-      DO ( 1, 0);
-      DO ( 0,-1);
-      DO (-1,-1);
-      DO (-1, 0);
-
-#undef DO
-    }
-
-    return N;
   }
 };
 
