@@ -88,15 +88,6 @@ player_type other (player_type pl)
   default: throw std::runtime_error ("other (N)");
   }
 }
-int proj (player_type pl, point_type const& p)
-{
-  switch (pl)
-  {
-  case L: return p.x();
-  case R: return p.y();
-  default: throw std::runtime_error ("proj (N)");
-  }
-}
 
 class position_type
 {
@@ -167,8 +158,8 @@ private:
 
     point_type f (x, y);
 
-    int mi (proj (_player, f));
-    int ma (proj (_player, f));
+    int mi ((_player == L) ? x : y);
+    int ma ((_player == L) ? x : y);
 
     open.push_back (f);
 
@@ -186,8 +177,8 @@ private:
           {                                                     \
             _seen[n.x() * (1 + _size) + n.y()] = true;          \
                                                                 \
-            mi = std::min (mi, proj (_player, n));              \
-            ma = std::max (ma, proj (_player, n));              \
+            mi = std::min (mi, (_player == L) ? n.x() : n.y()); \
+            ma = std::max (ma, (_player == L) ? n.x() : n.y()); \
                                                                 \
             if (mi == 0 && ma == _size)                         \
             {                                                   \
