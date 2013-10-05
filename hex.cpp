@@ -97,26 +97,22 @@ player_type winner_from (int f)
   return N;
 }
 
-class position_type
+void put (int f)
 {
-public:
-  void put (int f)
+  if (++_cnt_put % 1000000 == 0)
   {
-    if (++_cnt_put % 1000000 == 0)
+    std::cout << "...put " << _cnt_put << std::endl;
+
+    if (_cnt_put >= 100000000)
     {
-      std::cout << "...put " << _cnt_put << std::endl;
+      exit (0);
+    }
+  };
 
-      if (_cnt_put >= 100000000)
-      {
-        exit (0);
-      }
-    };
-
-    _winner = winner_from (f);
-    _taken[f] = _player;
-    _player = 1 - _player;
-  }
-};
+  _winner = winner_from (f);
+  _taken[f] = _player;
+  _player = 1 - _player;
+}
 
 void show()
 {
@@ -149,29 +145,29 @@ void show()
   }
 }
 
-bool _winning (position_type& pos)
+uint8_t _winning()
 {
   if (_winner != N)
   {
-    return true;
+    return 1;
   }
 
   for (int f (0); f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {
-      pos.put (f);
-      const bool w (_winning (pos));
+      put (f);
+      const uint8_t w (_winning ());
       unput (f);
 
       if (w)
       {
-        return false;
+        return 0;
       }
     }
   }
 
-  return true;
+  return 1;
 }
 
 int main()
@@ -185,14 +181,12 @@ int main()
     _taken[i] = N;
   }
 
-  position_type b;
-
   for (int f (0); f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {
-      b.put (f);
-      if (_winning (b))
+      put (f);
+      if (_winning())
       {
         show();
       }
