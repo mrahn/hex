@@ -4,6 +4,8 @@ CXXFLAGS += -Wall
 CXXFLAGS += -std=c++11
 CXXFLAGS += -DNDEBUG
 
+CXXFLAGS += $(CXXEXTRA)
+
 hex: hex.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
 
