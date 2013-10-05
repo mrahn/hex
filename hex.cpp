@@ -175,7 +175,7 @@ public:
   position_type (int size)
     : _size (size)
     , _player (L)
-    , _winner (boost::none)
+    , _winner (N)
     , _taken ()
     , _cnt_put (0)
     , _cnt_unput (0)
@@ -192,7 +192,7 @@ public:
   {
     return _player;
   }
-  boost::optional<player_type> winner() const
+  player_type winner() const
   {
     return _winner;
   }
@@ -235,7 +235,7 @@ public:
   void unput (point_type const& f)
   {
     ++_cnt_unput;
-    _winner = boost::none;
+    _winner = N;
     _taken.erase (f);
     _player = other (_player);
   }
@@ -269,7 +269,7 @@ private:
 
   int _size;
   player_type _player;
-  boost::optional<player_type> _winner;
+  player_type _winner;
   boost::unordered_map<point_type, player_type> _taken;
 
   unsigned long _cnt_put;
@@ -278,18 +278,7 @@ private:
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
-  os << pos.player();
-
-  if (pos.winner())
-  {
-    os << *pos.winner();
-  }
-  else
-  {
-    os << "?";
-  }
-
-  os << std::endl;
+  os << pos.player() << pos.winner() << std::endl << std::endl;
 
   boost::unordered_set<point_type> rc;
   int m (0);
@@ -336,7 +325,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
 bool _winning (position_type& pos)
 {
-  if (pos.winner())
+  if (pos.winner() != N)
   {
     return true;
   }
