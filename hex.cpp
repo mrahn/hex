@@ -87,17 +87,14 @@ private:
   {
     std::fill (_seen, _seen + LEN * LEN, false);
 
-    int const x (X(f));
-    int const y (Y(f));
-
-    int mi ((_player == L) ? x : y);
-    int ma ((_player == L) ? x : y);
+    int mi ((_player == L) ? X(f) : Y(f));
+    int ma ((_player == L) ? X(f) : Y(f));
 
     int pos (0);
     int end (0);
 
-    _open[end++] = x;
-    _open[end++] = y;
+    _open[end++] = X(f);
+    _open[end++] = Y(f);
 
     _seen[f] = true;
 
@@ -106,33 +103,32 @@ private:
       int const px (_open[pos++]);
       int const py (_open[pos++]);
 
-#define DO(dx, dy)                                              \
-      {                                                         \
-        int const nx (px + dx);                                 \
-        int const ny (py + dy);                                 \
-                                                                \
-        if (  nx >= 0 && nx <= SIZE                             \
-           && ny >= 0 && ny <= SIZE                             \
-           && _taken[LIN (nx, ny)] == _player                   \
-           )                                                    \
-        {                                                       \
-          if (!_seen[LIN (nx, ny)])                             \
-          {                                                     \
-            mi = std::min (mi, (_player == L) ? nx : ny);       \
-            ma = std::max (ma, (_player == L) ? nx : ny);       \
-                                                                \
-            if (mi == 0 && ma == SIZE)                          \
-            {                                                   \
-              return _player;                                   \
-            }                                                   \
-                                                                \
-            _open[end++] = nx;                                  \
-            _open[end++] = ny;                                  \
-                                                                \
-            _seen[LIN (nx, ny)] = true;                         \
-          }                                                     \
-        }                                                       \
-      }
+#define DO(dx, dy)                                                      \
+      if (  (px + dx) >= 0 && (px + dx) <= SIZE                         \
+         && (py + dy) >= 0 && (py + dy) <= SIZE                         \
+         && _taken[LIN ((px + dx), (py + dy))] == _player               \
+         )                                                              \
+      {                                                                 \
+        if (!_seen[LIN ((px + dx), (py + dy))])                         \
+        {                                                               \
+          mi = std::min ( mi                                            \
+                        , (_player == L) ? (px + dx) : (py + dy)        \
+                        );                                              \
+          ma = std::max ( ma                                            \
+                        , (_player == L) ? (px + dx) : (py + dy)        \
+                        );                                              \
+                                                                        \
+          if (mi == 0 && ma == SIZE)                                    \
+          {                                                             \
+            return _player;                                             \
+          }                                                             \
+                                                                        \
+          _open[end++] = (px + dx);                                     \
+          _open[end++] = (py + dy);                                     \
+                                                                        \
+          _seen[LIN ((px + dx), (py + dy))] = true;                     \
+        }                                                               \
+      }                                                                 \
 
       DO ( 0, 1);
       DO ( 1, 1);
