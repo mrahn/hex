@@ -5,9 +5,13 @@
 
 #include <boost/foreach.hpp>
 
-bool in_range (int s, int v)
+#ifndef SIZE
+#define SIZE 2
+#endif
+
+bool in_range (int v)
 {
-  return v >= 0 && v <= s;
+  return v >= 0 && v <= SIZE;
 }
 
 enum player_type { L, R, N };
@@ -34,17 +38,16 @@ player_type other (player_type pl)
 class position_type
 {
 public:
-  position_type (int size)
-    : _size (size)
-    , _player (L)
+  position_type ()
+    : _player (L)
     , _winner (N)
-    , _taken (new player_type[(_size + 1) * (_size + 1)])
+    , _taken (new player_type[(SIZE + 1) * (SIZE + 1)])
     , _cnt_put (0)
     , _cnt_unput (0)
-    , _seen (new bool[(_size + 1) * (_size + 1)])
-    , _open (new int[2 * (_size + 1) * (_size + 1)])
+    , _seen (new bool[(SIZE + 1) * (SIZE + 1)])
+    , _open (new int[2 * (SIZE + 1) * (SIZE + 1)])
   {
-    std::fill (_taken, _taken + (_size + 1) * (_size + 1), N);
+    std::fill (_taken, _taken + (SIZE + 1) * (SIZE + 1), N);
   }
   ~position_type()
   {
@@ -52,10 +55,6 @@ public:
     delete[] _taken;
     delete[] _seen;
     delete[] _open;
-  }
-  int size() const
-  {
-    return _size;
   }
   player_type player() const
   {
@@ -67,7 +66,7 @@ public:
   }
   player_type stone (int x, int y) const
   {
-    return _taken[x * (1 + _size) + y];
+    return _taken[x * (1 + SIZE) + y];
   }
 
   void put (int x, int y)
@@ -78,21 +77,21 @@ public:
     };
 
     _winner = winner_from (x, y);
-    _taken[x * (1 + _size) + y] = _player;
+    _taken[x * (1 + SIZE) + y] = _player;
     _player = other (_player);
   }
   void unput (int x, int y)
   {
     ++_cnt_unput;
     _winner = N;
-    _taken[x * (1 + _size) + y] = N;
+    _taken[x * (1 + SIZE) + y] = N;
     _player = other (_player);
   }
 
 private:
   player_type winner_from (int x, int y) const
   {
-    std::fill (_seen, _seen + (_size + 1) * (_size + 1), false);
+    std::fill (_seen, _seen + (SIZE + 1) * (SIZE + 1), false);
 
     int mi ((_player == L) ? x : y);
     int ma ((_player == L) ? x : y);
@@ -103,7 +102,7 @@ private:
     _open[end++] = x;
     _open[end++] = y;
 
-    _seen[x * (1 + _size) + y] = true;
+    _seen[x * (1 + SIZE) + y] = true;
 
     while (pos < end)
     {
@@ -115,17 +114,17 @@ private:
         int const nx (px + dx);                                 \
         int const ny (py + dy);                                 \
                                                                 \
-        if (  in_range (_size, nx)                              \
-           && in_range (_size, ny)                              \
+        if (  in_range (nx)                                     \
+           && in_range (ny)                                     \
            && stone (nx, ny) == _player                         \
            )                                                    \
         {                                                       \
-          if (!_seen[nx * (1 + _size) + ny])                    \
+          if (!_seen[nx * (1 + SIZE) + ny])                     \
           {                                                     \
             mi = std::min (mi, (_player == L) ? nx : ny);       \
             ma = std::max (ma, (_player == L) ? nx : ny);       \
                                                                 \
-            if (mi == 0 && ma == _size)                         \
+            if (mi == 0 && ma == SIZE)                          \
             {                                                   \
               return _player;                                   \
             }                                                   \
@@ -133,7 +132,7 @@ private:
             _open[end++] = nx;                                  \
             _open[end++] = ny;                                  \
                                                                 \
-            _seen[nx * (1 + _size) + ny] = true;                \
+            _seen[nx * (1 + SIZE) + ny] = true;                \
           }                                                     \
         }                                                       \
       }
@@ -151,7 +150,6 @@ private:
     return N;
   }
 
-  int _size;
   player_type _player;
   player_type _winner;
   player_type* _taken;
@@ -167,9 +165,9 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
   os << pos.player() << pos.winner() << std::endl;
 
-  for (int x (0); x <= 2 * pos.size(); ++x)
+  for (int x (0); x <= 2 * SIZE; ++x)
   {
-    for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
+    for (int y (-2 * SIZE); y <= 2 * SIZE; ++y)
     {
       int const qx ((2 * x + y) / 4);
       int const rx ((2 * x + y) % 4);
@@ -179,8 +177,8 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
       if (  rx == 0
          && ry == 0
-         && in_range (pos.size(), qx)
-         && in_range (pos.size(), qy)
+         && in_range (qx)
+         && in_range (qy)
          )
       {
         os << pos.stone (qx, qy);
@@ -203,9 +201,9 @@ bool _winning (position_type& pos)
     return true;
   }
 
-  for (int x (0); x <= pos.size(); ++x)
+  for (int x (0); x <= SIZE; ++x)
   {
-    for (int y (0); y <= pos.size(); ++y)
+    for (int y (0); y <= SIZE; ++y)
     {
       if (pos.stone (x, y) == N)
       {
@@ -224,13 +222,13 @@ bool _winning (position_type& pos)
   return true;
 }
 
-int main (int argc, char** argv)
+int main()
 {
-  position_type b ((argc > 1) ? atoi (argv[1]) : 2);
+  position_type b;
 
-  for (int x (0); x <= b.size(); ++x)
+  for (int x (0); x <= SIZE; ++x)
   {
-    for (int y (0); y <= b.size(); ++y)
+    for (int y (0); y <= SIZE; ++y)
     {
       if (b.stone (x, y) == N)
       {
