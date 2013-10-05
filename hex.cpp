@@ -142,7 +142,7 @@ points_type neighbourN (int s, point_type const& p)
     (std::copy_if ( n.begin(), n.end(), nn.begin()
                   , [s](point_type const& a)
                     {
-                      return in_range (s, a.x()) && in_range (s, a.y());
+                      return in_range (s, a);
                     }
                   )
     );
@@ -217,16 +217,14 @@ public:
   }
   player_type stone (point_type const& p) const
   {
-    assert (in_range (_size, p.x()));
-    assert (in_range (_size, p.y()));
+    assert (in_range (_size, p));
 
     return _taken[p.x() * (1 + _size) + p.y()];
   }
 
   void put (point_type const& f)
   {
-    assert (in_range (_size, f.x()));
-    assert (in_range (_size, f.y()));
+    assert (in_range (_size, f));
 
     if (++_cnt_put % 100000 == 0)
     {
@@ -252,8 +250,7 @@ public:
   }
   void unput (point_type const& f)
   {
-    assert (in_range (_size, f.x()));
-    assert (in_range (_size, f.y()));
+    assert (in_range (_size, f));
 
     ++_cnt_unput;
     _winner = N;
