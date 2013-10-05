@@ -1,4 +1,6 @@
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #ifndef SIZE
 #define SIZE 2
@@ -9,15 +11,13 @@
 #define X(f) ((f) / LEN)
 #define Y(f) ((f) % LEN)
 
-typedef uint8_t player_type;
-
 #define L 0
 #define R 1
 #define N 2
 
 static char const* const show_player[3] = {"L", "R", "."};
-static player_type _player = L;
-static player_type _winner = N;
+static uint8_t _player = L;
+static uint8_t _winner = N;
 
 static unsigned long _cnt_put = 0;
 static unsigned long _cnt_unput = 0;
@@ -37,18 +37,18 @@ void unput (int f)
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-player_type winner_from (int f)
+uint8_t winner_from (int f)
 {
-  for (int i (0); i < LEN * LEN; ++i)
+  for (int i = 0; i < LEN * LEN; ++i)
   {
     _seen[i] = 0;
   }
 
-  int mi ((_player == L) ? X(f) : Y(f));
-  int ma ((_player == L) ? X(f) : Y(f));
+  int mi = (_player == L) ? X(f) : Y(f);
+  int ma = (_player == L) ? X(f) : Y(f);
 
-  int pos (0);
-  int end (0);
+  int pos = 0;
+  int end = 0;
 
   _open[end++] = X(f);
   _open[end++] = Y(f);
@@ -57,8 +57,8 @@ player_type winner_from (int f)
 
   while (pos < end)
   {
-    int const px (_open[pos++]);
-    int const py (_open[pos++]);
+    int const px = _open[pos++];
+    int const py = _open[pos++];
 
 #define DO(dx, dy)                                              \
     if (  (px + dx) >= 0 && (px + dx) <= SIZE                   \
@@ -117,15 +117,15 @@ void show()
 {
   printf ("%s%s\n", show_player[_player], show_player[_winner]);
 
-  for (int x (0); x <= 2 * SIZE; ++x)
+  for (int x = 0; x <= 2 * SIZE; ++x)
   {
-    for (int y (-2 * SIZE); y <= 2 * SIZE; ++y)
+    for (int y = -2 * SIZE; y <= 2 * SIZE; ++y)
     {
-      int const qx ((2 * x + y) / 4);
-      int const rx ((2 * x + y) % 4);
+      int const qx = (2 * x + y) / 4;
+      int const rx = (2 * x + y) % 4;
 
-      int const qy ((2 * x - y) / 4);
-      int const ry ((2 * x - y) % 4);
+      int const qy = (2 * x - y) / 4;
+      int const ry = (2 * x - y) % 4;
 
       if (  rx == 0
          && ry == 0
@@ -151,12 +151,12 @@ uint8_t _winning()
     return 1;
   }
 
-  for (int f (0); f < LEN * LEN; ++f)
+  for (int f = 0; f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {
       put (f);
-      const uint8_t w (_winning ());
+      const uint8_t w = _winning ();
       unput (f);
 
       if (w)
@@ -181,12 +181,12 @@ int main()
     exit (EXIT_FAILURE);
   }
 
-  for (int i (0); i < LEN * LEN; ++i)
+  for (int i = 0; i < LEN * LEN; ++i)
   {
     _taken[i] = N;
   }
 
-  for (int f (0); f < LEN * LEN; ++f)
+  for (int f = 0; f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {

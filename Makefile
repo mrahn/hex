@@ -1,21 +1,13 @@
 
-JUDY_HOME = $(HOME)
-
-CXXFLAGS += -O3
-CXXFLAGS += -Wall
-CXXFLAGS += -std=c++11
-CXXFLAGS += -DNDEBUG
-CXXFLAGS += -I$(JUDY_HOME)/include
-CXXFLAGS += $(CXXEXTRA)
-
-LDLFAGS += -L$(JUDY_HOME)/lib
-
-LIB += Judy
+CFLAGS += -O3
+CFLAGS += -Wall
+CFLAGS += -std=c99
+CFLAGS += $(CXXEXTRA)
 
 ###########################################################################
 
-hex: hex.cpp
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< $(addprefix -l,$(LIB)) -o $@
+hex: hex.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 ###########################################################################
 
