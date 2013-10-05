@@ -63,6 +63,16 @@ point_type hex_coord (point_type const& p)
                     , (2 * p.y() - p.x()) / 4
                     );
 }
+std::pair<point_type, point_type> hex_coord2 (point_type const& p)
+{
+  return std::make_pair ( point_type ( (2 * p.y() + p.x()) / 4
+                                     , (2 * p.y() - p.x()) / 4
+                                     )
+                        , point_type ( (2 * p.y() + p.x()) % 4
+                                     , (2 * p.y() - p.x()) % 4
+                                     )
+                        );
+}
 
 typedef std::vector<point_type> points_type;
 
