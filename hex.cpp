@@ -139,19 +139,34 @@ points_type neighbourN (int s, point_type const& p)
   return nn;
 }
 
-enum player_type { L, R };
+enum player_type { L, R, N };
 
 std::ostream& operator<< (std::ostream& os, const player_type& pl)
 {
-  return os << ((pl == L) ? "L" : "R");
+  switch (pl)
+  {
+  case L: return os << "L";
+  case R: return os << "R";
+  default: return os << ".";
+  }
 }
 player_type other (player_type pl)
 {
-  return (pl == L) ? R : L;
+  switch (pl)
+  {
+  case L: return R;
+  case R: return L;
+  default: assert (false);
+  }
 }
 int proj (player_type pl, point_type const& p)
 {
-  return (pl == L) ? p.x() : p.y();
+  switch (pl)
+  {
+  case L: return p.x();
+  case R: return p.y();
+  default: assert (false);
+  }
 }
 
 class position_type
