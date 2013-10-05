@@ -9,8 +9,8 @@
 
 #define LEN (SIZE + 1)
 #define LIN(x, y) ((x) * LEN + (y))
-#define X(v) ((v) / LEN)
-#define Y(v) ((v) % LEN)
+#define X(f) ((f) / LEN)
+#define Y(f) ((f) % LEN)
 
 enum player_type { L, R, N };
 
@@ -57,30 +57,37 @@ public:
   {
     return _taken[LIN (x, y)];
   }
+  player_type stone (int v) const
+  {
+    return _taken[v];
+  }
 
-  void put (int x, int y)
+  void put (int f)
   {
     if (++_cnt_put % 1000000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
     };
 
-    _winner = winner_from (x, y);
-    _taken[LIN (x, y)] = _player;
+    _winner = winner_from (f);
+    _taken[f] = _player;
     _player = (_player == L) ? R : L;
   }
-  void unput (int x, int y)
+  void unput (int f)
   {
     ++_cnt_unput;
     _winner = N;
-    _taken[LIN (x, y)] = N;
+    _taken[f] = N;
     _player = (_player == L) ? R : L;
   }
 
 private:
-  player_type winner_from (int x, int y) const
+  player_type winner_from (int f) const
   {
     std::fill (_seen, _seen + LEN * LEN, false);
+
+    int const x (X(f));
+    int const y (Y(f));
 
     int mi ((_player == L) ? x : y);
     int ma ((_player == L) ? x : y);
@@ -91,7 +98,7 @@ private:
     _open[end++] = x;
     _open[end++] = y;
 
-    _seen[LIN (x, y)] = true;
+    _seen[f] = true;
 
     while (pos < end)
     {
@@ -190,20 +197,17 @@ bool _winning (position_type& pos)
     return true;
   }
 
-  for (int x (0); x <= SIZE; ++x)
+  for (int f (0); f < LEN * LEN; ++f)
   {
-    for (int y (0); y <= SIZE; ++y)
+    if (pos.stone (f) == N)
     {
-      if (pos.stone (x, y) == N)
-      {
-        pos.put (x, y);
-        const bool w (_winning (pos));
-        pos.unput (x, y);
+      pos.put (f);
+      const bool w (_winning (pos));
+      pos.unput (f);
 
-        if (w)
-        {
-          return false;
-        }
+      if (w)
+      {
+        return false;
       }
     }
   }
@@ -215,19 +219,16 @@ int main()
 {
   position_type b;
 
-  for (int x (0); x <= SIZE; ++x)
+  for (int f (0); f < LEN * LEN; ++f)
   {
-    for (int y (0); y <= SIZE; ++y)
+    if (b.stone (f) == N)
     {
-      if (b.stone (x, y) == N)
+      b.put (f);
+      if (_winning (b))
       {
-        b.put (x, y);
-        if (_winning (b))
-        {
-          std::cout << b << std::endl;
-        }
-        b.unput (x, y);
+        std::cout << b << std::endl;
       }
+      b.unput (f);
     }
   }
 }
