@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <Judy.h>
 
 #ifndef SIZE
 #define SIZE 2
@@ -21,16 +22,20 @@ static uint8_t _player = L;
 static uint8_t _winner = N;
 
 static unsigned long _cnt_put = 0;
+static unsigned long _cnt_ins = 0;
+static unsigned long _cnt_hit = 0;
 
 static uint8_t* _taken;
 static uint8_t* _seen;
 static int* _open;
+static int _depth = 0;
 
 void unput (int f)
 {
   _winner = N;
   _taken[f] = N;
   _player = 1 - _player;
+  --_depth;
 }
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -99,17 +104,13 @@ void put (int f)
 {
   if (++_cnt_put % 1000000 == 0)
   {
-    printf ("...put %lu\n", _cnt_put);
-
-    if (_cnt_put >= 100000000)
-    {
-      exit (EXIT_SUCCESS);
-    }
+    fprintf (stderr, "...put %lu\n", _cnt_put);
   };
 
   _winner = winner_from (f);
   _taken[f] = _player;
   _player = 1 - _player;
+  ++_depth;
 }
 
 void show()
@@ -143,11 +144,51 @@ void show()
   }
 }
 
-uint8_t _winning()
+#define INS(v)                                            \
+  do                                                      \
+  {                                                       \
+    JHSI (PValue, *PJHSArray, _taken, LEN * LEN);         \
+                                                          \
+    if (PValue == PJERR)                                  \
+    {                                                     \
+      fprintf (stderr, "JHSI-Error: Out of memory...\n"); \
+                                                          \
+      exit (EXIT_FAILURE);                                \
+    }                                                     \
+                                                          \
+    *PValue = v;                                          \
+                                                          \
+    ++_cnt_ins;                                           \
+  } while (0)
+
+
+    /* if (_depth < 2)                                       \ */
+    /* {                                                     \ */
+    /*   uint8_t w = _winner;                                \ */
+    /*                                                       \ */
+    /*   _winner = v;                                        \ */
+    /*                                                       \ */
+    /*   show();                                             \ */
+    /*                                                       \ */
+    /*   _winner = w;                                        \ */
+    /* }                                                     \ */
+
+uint8_t _winning (Pvoid_t* PJHSArray)
 {
   if (_winner != N)
   {
     return 1;
+  }
+
+  PWord_t PValue;
+
+  JHSG (PValue, *PJHSArray, _taken, LEN * LEN);
+
+  if (PValue)
+  {
+    ++_cnt_hit;
+
+    return *PValue == _player;
   }
 
   for (int f = 0; f < LEN * LEN; ++f)
@@ -155,15 +196,19 @@ uint8_t _winning()
     if (_taken[f] == N)
     {
       put (f);
-      const uint8_t w = _winning ();
+      const uint8_t w = _winning (PJHSArray);
       unput (f);
 
       if (w)
       {
+        INS (1 - _player);
+
         return 0;
       }
     }
   }
+
+  INS (_player);
 
   return 1;
 }
@@ -185,12 +230,14 @@ int main()
     _taken[i] = N;
   }
 
+  Pvoid_t PJHSArray = (Pvoid_t) NULL;
+
   for (int f = 0; f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {
       put (f);
-      if (_winning())
+      if (_winning (&PJHSArray))
       {
         show();
       }
@@ -198,7 +245,13 @@ int main()
     }
   }
 
-  printf ("put %lu\n", _cnt_put);
+  Word_t Rc_word;
+
+  JHSFA (Rc_word, PJHSArray);
+
+  printf ( "put %lu ins %lu hit %lu Judy-bytes %lu\n"
+         , _cnt_put, _cnt_ins, _cnt_hit, Rc_word
+         );
 
   free (_taken);
   free (_seen);
