@@ -167,9 +167,9 @@ private:
     {
       point_type const p (open.back()); open.pop_back();
 
-#define DO(d...)                                                \
+#define DO(dx, dy)                                              \
       {                                                         \
-        point_type const n (p + point_type (d));                \
+        point_type const n (p + point_type (dx, dy));           \
                                                                 \
         if (in_range (_size, n) && stone (n) == player())       \
         {                                                       \
