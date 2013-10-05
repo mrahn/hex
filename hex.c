@@ -170,6 +170,12 @@ uint8_t _winning()
 
 int main()
 {
+  if (LEN > (8 << sizeof (uint8_t)))
+  {
+    fprintf (stderr, "LEN > (1 << sizeof (uint8_t)\n");
+    exit (EXIT_FAILURE);
+  }
+
   _taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
   _seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
   _open = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
