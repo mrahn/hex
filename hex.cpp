@@ -291,7 +291,7 @@ private:
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
-  os << pos.player() << pos.winner() << std::endl << std::endl;
+  os << pos.player() << pos.winner() << std::endl;
 
   boost::unordered_set<point_type> rc;
 
