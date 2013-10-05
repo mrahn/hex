@@ -46,13 +46,13 @@ uint8_t winner_from (int f)
   int mi = (_player == L) ? X(f) : Y(f);
   int ma = (_player == L) ? X(f) : Y(f);
 
-  int pos = 0;
-  int end = 0;
-
-  _open[end++] = X(f);
-  _open[end++] = Y(f);
+  _open[0] = X(f);
+  _open[1] = Y(f);
 
   _seen[f] = 1;
+
+  int pos = 0;
+  int end = 2;
 
   while (pos < end)
   {
