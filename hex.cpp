@@ -29,6 +29,14 @@ uint8_t stone (int v)
   return _taken[v];
 }
 
+void unput (int f)
+{
+  ++_cnt_unput;
+  _winner = N;
+  _taken[f] = N;
+  _player = 1 - _player;
+}
+
 class position_type
 {
 public:
@@ -57,13 +65,6 @@ public:
 
     _winner = winner_from (f);
     _taken[f] = _player;
-    _player = 1 - _player;
-  }
-  void unput (int f)
-  {
-    ++_cnt_unput;
-    _winner = N;
-    _taken[f] = N;
     _player = 1 - _player;
   }
 
@@ -180,7 +181,7 @@ bool _winning (position_type& pos)
     {
       pos.put (f);
       const bool w (_winning (pos));
-      pos.unput (f);
+      unput (f);
 
       if (w)
       {
@@ -212,7 +213,7 @@ int main()
       {
         std::cout << b << std::endl;
       }
-      b.unput (f);
+      unput (f);
     }
   }
 
