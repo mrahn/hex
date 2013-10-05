@@ -66,7 +66,10 @@ public:
 private:
   player_type winner_from (int f) const
   {
-    std::fill (_seen, _seen + LEN * LEN, 0);
+    for (int i (0); i < LEN * LEN; ++i)
+    {
+      _seen[i] = 0;
+    }
 
     int mi ((_player == L) ? X(f) : Y(f));
     int ma ((_player == L) ? X(f) : Y(f));
