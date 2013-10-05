@@ -15,15 +15,7 @@ typedef uint8_t player_type;
 #define R 1
 #define N 2
 
-std::ostream& operator<< (std::ostream& os, const player_type& pl)
-{
-  switch (pl)
-  {
-  case L: return os << "L";
-  case R: return os << "R";
-  default: return os << ".";
-  }
-}
+static char const* const show_player[3] = {"L", "R", "."};
 
 class position_type
 {
@@ -157,7 +149,9 @@ private:
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
-  os << pos.player() << pos.winner() << std::endl;
+  os << show_player[pos.player()]
+     << show_player[pos.winner()]
+     << std::endl;
 
   for (int x (0); x <= 2 * SIZE; ++x)
   {
@@ -175,7 +169,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
          && qy >= 0 && qy <= SIZE
          )
       {
-        os << pos.stone (LIN (qx, qy));
+        os << show_player[pos.stone (LIN (qx, qy))];
       }
       else
       {
