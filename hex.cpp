@@ -7,6 +7,11 @@
 #define SIZE 2
 #endif
 
+#define LEN (SIZE + 1)
+#define LIN(x, y) ((x) * LEN + (y))
+#define X(v) ((v) / LEN)
+#define Y(v) ((v) % LEN)
+
 enum player_type { L, R, N };
 
 std::ostream& operator<< (std::ostream& os, const player_type& pl)
@@ -25,13 +30,13 @@ public:
   position_type ()
     : _player (L)
     , _winner (N)
-    , _taken (new player_type[(SIZE + 1) * (SIZE + 1)])
+    , _taken (new player_type[LEN * LEN])
     , _cnt_put (0)
     , _cnt_unput (0)
-    , _seen (new bool[(SIZE + 1) * (SIZE + 1)])
-    , _open (new int[2 * (SIZE + 1) * (SIZE + 1)])
+    , _seen (new bool[LEN * LEN])
+    , _open (new int[2 * LEN * LEN])
   {
-    std::fill (_taken, _taken + (SIZE + 1) * (SIZE + 1), N);
+    std::fill (_taken, _taken + LEN * LEN, N);
   }
   ~position_type()
   {
@@ -50,32 +55,32 @@ public:
   }
   player_type stone (int x, int y) const
   {
-    return _taken[x * (1 + SIZE) + y];
+    return _taken[LIN (x, y)];
   }
 
   void put (int x, int y)
   {
-    if (++_cnt_put % 100000 == 0)
+    if (++_cnt_put % 1000000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
     };
 
     _winner = winner_from (x, y);
-    _taken[x * (1 + SIZE) + y] = _player;
+    _taken[LIN (x, y)] = _player;
     _player = (_player == L) ? R : L;
   }
   void unput (int x, int y)
   {
     ++_cnt_unput;
     _winner = N;
-    _taken[x * (1 + SIZE) + y] = N;
+    _taken[LIN (x, y)] = N;
     _player = (_player == L) ? R : L;
   }
 
 private:
   player_type winner_from (int x, int y) const
   {
-    std::fill (_seen, _seen + (SIZE + 1) * (SIZE + 1), false);
+    std::fill (_seen, _seen + LEN * LEN, false);
 
     int mi ((_player == L) ? x : y);
     int ma ((_player == L) ? x : y);
@@ -86,7 +91,7 @@ private:
     _open[end++] = x;
     _open[end++] = y;
 
-    _seen[x * (1 + SIZE) + y] = true;
+    _seen[LIN (x, y)] = true;
 
     while (pos < end)
     {
@@ -100,10 +105,10 @@ private:
                                                                 \
         if (  nx >= 0 && nx <= SIZE                             \
            && ny >= 0 && ny <= SIZE                             \
-           && _taken[nx * (1 + SIZE) + ny] == _player           \
+           && _taken[LIN (nx, ny)] == _player                   \
            )                                                    \
         {                                                       \
-          if (!_seen[nx * (1 + SIZE) + ny])                     \
+          if (!_seen[LIN (nx, ny)])                             \
           {                                                     \
             mi = std::min (mi, (_player == L) ? nx : ny);       \
             ma = std::max (ma, (_player == L) ? nx : ny);       \
@@ -116,7 +121,7 @@ private:
             _open[end++] = nx;                                  \
             _open[end++] = ny;                                  \
                                                                 \
-            _seen[nx * (1 + SIZE) + ny] = true;                \
+            _seen[LIN (nx, ny)] = true;                         \
           }                                                     \
         }                                                       \
       }
