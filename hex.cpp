@@ -5,52 +5,9 @@
 
 #include <boost/foreach.hpp>
 
-class point_type
-{
-public:
-  explicit point_type()
-    : _x()
-    , _y()
-  {}
-  explicit point_type (int x, int y)
-    : _x (x)
-    , _y (y)
-  {}
-  int x() const
-  {
-    return _x;
-  }
-  int y() const
-  {
-    return _y;
-  }
-private:
-  int _x;
-  int _y;
-};
-
-std::ostream& operator<< (std::ostream& os, point_type const& p)
-{
-  return os << "(" << p.x() << "," << p.y() << ")";
-}
-point_type operator+ (point_type const& a, point_type const& b)
-{
-  return point_type (a.x() + b.x(), a.y() + b.y());
-}
-point_type operator- (point_type const& a, point_type const& b)
-{
-  return point_type (a.x() - b.x(), a.y() - b.y());
-}
-
-typedef std::vector<point_type> points_type;
-
 bool in_range (int s, int v)
 {
   return v >= 0 && v <= s;
-}
-bool in_range (int s, point_type const& p)
-{
-  return in_range (s, p.x()) && in_range (s, p.y());
 }
 
 enum player_type { L, R, N };
@@ -214,17 +171,19 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
   {
     for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
     {
-      point_type const p (y, x);
-      point_type const q ( (2 * p.y() + p.x()) / 4
-                         , (2 * p.y() - p.x()) / 4
-                         );
-      point_type const r ( (2 * p.y() + p.x()) % 4
-                         , (2 * p.y() - p.x()) % 4
-                         );
+      int const qx ((2 * x + y) / 4);
+      int const rx ((2 * x + y) % 4);
 
-      if (r.x() == 0 && r.y() == 0 && in_range (pos.size(), q))
+      int const qy ((2 * x - y) / 4);
+      int const ry ((2 * x - y) % 4);
+
+      if (  rx == 0
+         && ry == 0
+         && in_range (pos.size(), qx)
+         && in_range (pos.size(), qy)
+         )
       {
-        os << pos.stone (q.x(), q.y());
+        os << pos.stone (qx, qy);
       }
       else
       {
