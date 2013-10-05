@@ -294,20 +294,17 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
   os << pos.player() << pos.winner() << std::endl << std::endl;
 
   boost::unordered_set<point_type> rc;
-  int m (0);
 
   BOOST_FOREACH (point_type const& f, board (pos.size()))
   {
     point_type const r (rect_coord (f));
 
     rc.insert (r);
-
-    m = std::max (m, std::max (abs (r.x()), abs (r.y())));
   }
 
-  for (int x (0); x <= m; ++x)
+  for (int x (0); x <= 2 * pos.size(); ++x)
   {
-    for (int y (-m); y <= m; ++y)
+    for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
     {
       point_type const p (y, x);
       point_type const h (hex_coord (p));
