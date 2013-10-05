@@ -24,6 +24,11 @@ static unsigned long _cnt_unput = 0;
 
 static uint8_t* _taken;
 
+uint8_t stone (int v)
+{
+  return _taken[v];
+}
+
 class position_type
 {
 public:
@@ -36,10 +41,6 @@ public:
   {
     delete[] _seen;
     delete[] _open;
-  }
-  player_type stone (int v) const
-  {
-    return _taken[v];
   }
 
   void put (int f)
@@ -153,7 +154,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
          && qy >= 0 && qy <= SIZE
          )
       {
-        os << show_player[pos.stone (LIN (qx, qy))];
+        os << show_player[stone (LIN (qx, qy))];
       }
       else
       {
@@ -175,7 +176,7 @@ bool _winning (position_type& pos)
 
   for (int f (0); f < LEN * LEN; ++f)
   {
-    if (pos.stone (f) == N)
+    if (stone (f) == N)
     {
       pos.put (f);
       const bool w (_winning (pos));
@@ -204,7 +205,7 @@ int main()
 
   for (int f (0); f < LEN * LEN; ++f)
   {
-    if (b.stone (f) == N)
+    if (stone (f) == N)
     {
       b.put (f);
       if (_winning (b))
