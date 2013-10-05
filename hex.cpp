@@ -175,6 +175,12 @@ int main()
   _seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
   _open = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
 
+  if (!_taken || !_seen || !_open)
+  {
+    fprintf (stderr, "could not allocate memory\n");
+    exit (EXIT_FAILURE);
+  }
+
   for (int i (0); i < LEN * LEN; ++i)
   {
     _taken[i] = N;
