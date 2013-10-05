@@ -23,6 +23,8 @@ static unsigned long _cnt_put = 0;
 static unsigned long _cnt_unput = 0;
 
 static uint8_t* _taken;
+static uint8_t* _seen;
+static uint8_t* _open;
 
 void unput (int f)
 {
@@ -35,17 +37,6 @@ void unput (int f)
 class position_type
 {
 public:
-  position_type ()
-    : _seen (new uint8_t[LEN * LEN])
-    , _open (new uint8_t[LEN * LEN])
-  {
-  }
-  ~position_type()
-  {
-    delete[] _seen;
-    delete[] _open;
-  }
-
   void put (int f)
   {
     if (++_cnt_put % 1000000 == 0)
@@ -126,9 +117,6 @@ private:
 
     return N;
   }
-
-  uint8_t* _seen;
-  uint8_t* _open;
 };
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
@@ -194,6 +182,8 @@ bool _winning (position_type& pos)
 int main()
 {
   _taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  _seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  _open = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
 
   for (int i (0); i < LEN * LEN; ++i)
   {
@@ -218,4 +208,6 @@ int main()
   printf ("put %lu unput %lu\n", _cnt_unput, _cnt_unput);
 
   free (_taken);
+  free (_seen);
+  free (_open);
 }
