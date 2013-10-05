@@ -44,21 +44,6 @@ point_type operator- (point_type const& a, point_type const& b)
 
 typedef std::vector<point_type> points_type;
 
-points_type board (int s)
-{
-  points_type b;
-
-  for (int x (0); x <= s; ++x)
-  {
-    for (int y (0); y <= s; ++y)
-    {
-      b.push_back (point_type (x, y));
-    }
-  }
-
-  return b;
-}
-
 bool in_range (int s, int v)
 {
   return v >= 0 && v <= s;
