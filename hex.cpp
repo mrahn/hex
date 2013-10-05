@@ -100,6 +100,7 @@ public:
     , _cnt_put (0)
     , _cnt_unput (0)
     , _seen (new bool[(_size + 1) * (_size + 1)])
+    , _open (new int[2 * (_size + 1) * (_size + 1)])
   {
     std::fill (_taken, _taken + (_size + 1) * (_size + 1), N);
   }
@@ -108,6 +109,7 @@ public:
     std::cout << "put " << _cnt_put << " unput " << _cnt_unput << std::endl;
     delete[] _taken;
     delete[] _seen;
+    delete[] _open;
   }
   int size() const
   {
@@ -148,31 +150,32 @@ public:
 private:
   player_type winner_from (int x, int y) const
   {
-    std::vector<point_type> open;
-
     std::fill (_seen, _seen + (_size + 1) * (_size + 1), false);
-
-    point_type f (x, y);
 
     int mi ((_player == L) ? x : y);
     int ma ((_player == L) ? x : y);
 
-    open.push_back (f);
+    int pos (0);
+    int end (0);
 
-    _seen[f.x() * (1 + _size) + f.y()] = true;
+    _open[end++] = x;
+    _open[end++] = y;
 
-    while (not (open.empty()))
+    _seen[x * (1 + _size) + y] = true;
+
+    while (pos < end)
     {
-      point_type const p (open.back()); open.pop_back();
+      int const px (_open[pos++]);
+      int const py (_open[pos++]);
 
 #define DO(dx, dy)                                              \
       {                                                         \
-        int const nx (p.x() + dx);                              \
-        int const ny (p.y() + dy);                              \
+        int const nx (px + dx);                                 \
+        int const ny (py + dy);                                 \
                                                                 \
         if (  in_range (_size, nx)                              \
            && in_range (_size, ny)                              \
-           && stone (nx, ny) == player()                        \
+           && stone (nx, ny) == _player                         \
            )                                                    \
         {                                                       \
           if (!_seen[nx * (1 + _size) + ny])                    \
@@ -185,7 +188,8 @@ private:
               return _player;                                   \
             }                                                   \
                                                                 \
-            open.push_back (point_type (nx, ny));               \
+            _open[end++] = nx;                                  \
+            _open[end++] = ny;                                  \
                                                                 \
             _seen[nx * (1 + _size) + ny] = true;                \
           }                                                     \
@@ -198,6 +202,8 @@ private:
       DO ( 0,-1);
       DO (-1,-1);
       DO (-1, 0);
+
+#undef DO
     }
 
     return N;
@@ -212,6 +218,7 @@ private:
   unsigned long _cnt_unput;
 
   bool* _seen;
+  int* _open;
 };
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
