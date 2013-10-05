@@ -22,22 +22,18 @@ static player_type _winner = N;
 static unsigned long _cnt_put = 0;
 static unsigned long _cnt_unput = 0;
 
+static uint8_t* _taken;
+
 class position_type
 {
 public:
   position_type ()
-    : _taken (new player_type[LEN * LEN])
-    , _seen (new uint8_t[LEN * LEN])
+    : _seen (new uint8_t[LEN * LEN])
     , _open (new uint8_t[LEN * LEN])
   {
-    for (int i (0); i < LEN * LEN; ++i)
-    {
-      _taken[i] = N;
-    }
   }
   ~position_type()
   {
-    delete[] _taken;
     delete[] _seen;
     delete[] _open;
   }
@@ -131,8 +127,6 @@ private:
     return N;
   }
 
-  player_type* _taken;
-
   uint8_t* _seen;
   uint8_t* _open;
 };
@@ -199,6 +193,13 @@ bool _winning (position_type& pos)
 
 int main()
 {
+  _taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+
+  for (int i (0); i < LEN * LEN; ++i)
+  {
+    _taken[i] = N;
+  }
+
   position_type b;
 
   for (int f (0); f < LEN * LEN; ++f)
@@ -215,4 +216,6 @@ int main()
   }
 
   printf ("put %lu unput %lu\n", _cnt_unput, _cnt_unput);
+
+  free (_taken);
 }
