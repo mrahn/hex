@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
@@ -155,7 +156,7 @@ player_type other (player_type pl)
   {
   case L: return R;
   case R: return L;
-  default: assert (false);
+  default: throw std::runtime_error ("other (N)");
   }
 }
 int proj (player_type pl, point_type const& p)
@@ -164,7 +165,7 @@ int proj (player_type pl, point_type const& p)
   {
   case L: return p.x();
   case R: return p.y();
-  default: assert (false);
+  default: throw std::runtime_error ("proj (N)");
   }
 }
 
