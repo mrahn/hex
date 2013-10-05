@@ -4,7 +4,8 @@
 #include <stdexcept>
 
 #include <boost/foreach.hpp>
-#include <boost/unordered_map.hpp>
+
+#define assert(x...)
 
 class point_type
 {
@@ -30,10 +31,6 @@ private:
   int _y;
 };
 
-std::size_t hash_value (point_type const& p)
-{
-  return boost::hash<std::pair<int,int>>()(std::make_pair (p.x(), p.y()));
-}
 bool operator== (point_type const& a, point_type const& b)
 {
   return a.x() == b.x() && a.y() == b.y();
@@ -67,32 +64,7 @@ points_type board (int s)
 
   return b;
 }
-points_type _directions()
-{
-  points_type d;
-  d.push_back (point_type (0,1));
-  d.push_back (point_type (1,1));
-  d.push_back (point_type (1,0));
-  return d;
-}
-points_type directions()
-{
-  static points_type d (_directions());
-  return d;
-}
 
-points_type neighbour (point_type const& p)
-{
-  points_type n;
-
-  BOOST_FOREACH (point_type const& d, directions())
-  {
-    n.push_back (p + d);
-    n.push_back (p - d);
-  }
-
-  return n;
-}
 bool in_range (int s, int v)
 {
   return v >= 0 && v <= s;
@@ -100,34 +72,6 @@ bool in_range (int s, int v)
 bool in_range (int s, point_type const& p)
 {
   return in_range (s, p.x()) && in_range (s, p.y());
-}
-points_type neighbourN (int s, point_type const& p)
-{
-  static boost::unordered_map<point_type, points_type> c;
-
-  auto known (c.find (p));
-
-  if (known != c.end())
-  {
-    return known->second;
-  }
-
-  points_type n (neighbour (p));
-  points_type nn (n.size());
-
-  auto it
-    (std::copy_if ( n.begin(), n.end(), nn.begin()
-                  , [s](point_type const& a)
-                    {
-                      return in_range (s, a);
-                    }
-                  )
-    );
-  nn.resize (std::distance (nn.begin(), it));
-
-  c.insert (std::make_pair (p, nn));
-
-  return nn;
 }
 
 enum player_type { L, R, N };
@@ -249,17 +193,34 @@ private:
     {
       c.push_back (open.back()); open.pop_back();
 
-      BOOST_FOREACH (point_type const& n, neighbourN (size(), c.back()))
-      {
-        if (stone (n) == player())
-        {
-          if (!_seen[n.x() * (1 + _size) + n.y()])
-          {
-            _seen[n.x() * (1 + _size) + n.y()] = true;
+#define DO                                                      \
+      if (in_range (_size, n) && stone (n) == player())         \
+      {                                                         \
+        if (!_seen[n.x() * (1 + _size) + n.y()])                \
+        {                                                       \
+          _seen[n.x() * (1 + _size) + n.y()] = true;            \
+                                                                \
+          open.push_back (n);                                   \
+        }                                                       \
+      }
 
-            open.push_back (n);
-          }
-        }
+      {
+        point_type const n (c.back() + point_type (0,1)); DO;
+      }
+      {
+        point_type const n (c.back() + point_type (1,1)); DO;
+      }
+      {
+        point_type const n (c.back() + point_type (1,0)); DO;
+      }
+      {
+        point_type const n (c.back() + point_type (0,-1)); DO;
+      }
+      {
+        point_type const n (c.back() + point_type (-1,-1)); DO;
+      }
+      {
+        point_type const n (c.back() + point_type (-1,0)); DO;
       }
     }
 
