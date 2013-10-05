@@ -53,10 +53,6 @@ public:
   {
     return _winner;
   }
-  player_type stone (int x, int y) const
-  {
-    return _taken[LIN (x, y)];
-  }
   player_type stone (int v) const
   {
     return _taken[v];
@@ -182,7 +178,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
          && qy >= 0 && qy <= SIZE
          )
       {
-        os << pos.stone (qx, qy);
+        os << pos.stone (LIN (qx, qy));
       }
       else
       {
