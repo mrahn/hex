@@ -134,32 +134,38 @@ public:
   {
     return _taken[p.x() * (1 + _size) + p.y()];
   }
+  player_type stone (int x, int y) const
+  {
+    return _taken[x * (1 + _size) + y];
+  }
 
-  void put (point_type const& f)
+  void put (int x, int y)
   {
     if (++_cnt_put % 100000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
     };
 
-    _winner = winner_from (f);
-    _taken[f.x() * (1 + _size) + f.y()] = _player;
+    _winner = winner_from (x, y);
+    _taken[x * (1 + _size) + y] = _player;
     _player = other (_player);
   }
-  void unput (point_type const& f)
+  void unput (int x, int y)
   {
     ++_cnt_unput;
     _winner = N;
-    _taken[f.x() * (1 + _size) + f.y()] = N;
+    _taken[x * (1 + _size) + y] = N;
     _player = other (_player);
   }
 
 private:
-  player_type winner_from (point_type const& f) const
+  player_type winner_from (int x, int y) const
   {
     std::vector<point_type> open;
 
     std::fill (_seen, _seen + (_size + 1) * (_size + 1), false);
+
+    point_type f (x, y);
 
     int mi (proj (_player, f));
     int ma (proj (_player, f));
@@ -253,17 +259,20 @@ bool _winning (position_type& pos)
     return true;
   }
 
-  BOOST_FOREACH (point_type const& f, board (pos.size()))
+  for (int x (0); x <= pos.size(); ++x)
   {
-    if (pos.stone (f) == N)
+    for (int y (0); y <= pos.size(); ++y)
     {
-      pos.put (f);
-      const bool w (_winning (pos));
-      pos.unput (f);
-
-      if (w)
+      if (pos.stone (x, y) == N)
       {
-        return false;
+        pos.put (x, y);
+        const bool w (_winning (pos));
+        pos.unput (x, y);
+
+        if (w)
+        {
+          return false;
+        }
       }
     }
   }
@@ -275,16 +284,19 @@ int main (int argc, char** argv)
 {
   position_type b ((argc > 1) ? atoi (argv[1]) : 2);
 
-  BOOST_FOREACH (point_type const& f, board (b.size()))
+  for (int x (0); x <= b.size(); ++x)
   {
-    if (b.stone (f) == N)
+    for (int y (0); y <= b.size(); ++y)
     {
-      b.put (f);
-      if (_winning (b))
+      if (b.stone (x, y) == N)
       {
-        std::cout << b << std::endl;
+        b.put (x, y);
+        if (_winning (b))
+        {
+          std::cout << b << std::endl;
+        }
+        b.unput (x, y);
       }
-      b.unput (f);
     }
   }
 }
