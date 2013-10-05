@@ -120,6 +120,10 @@ bool in_range (int s, int v)
 {
   return v >= 0 && v <= s;
 }
+bool in_range (int s, point_type const& p)
+{
+  return in_range (s, p.x()) && in_range (s, p.y());
+}
 points_type neighbourN (int s, point_type const& p)
 {
   static boost::unordered_map<point_type, points_type> c;
