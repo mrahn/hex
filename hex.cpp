@@ -9,11 +9,6 @@
 #define SIZE 2
 #endif
 
-bool in_range (int v)
-{
-  return v >= 0 && v <= SIZE;
-}
-
 enum player_type { L, R, N };
 
 std::ostream& operator<< (std::ostream& os, const player_type& pl)
@@ -114,9 +109,9 @@ private:
         int const nx (px + dx);                                 \
         int const ny (py + dy);                                 \
                                                                 \
-        if (  in_range (nx)                                     \
-           && in_range (ny)                                     \
-           && stone (nx, ny) == _player                         \
+        if (  nx >= 0 && nx <= SIZE                             \
+           && ny >= 0 && ny <= SIZE                             \
+           && _taken[nx * (1 + SIZE) + ny] == _player           \
            )                                                    \
         {                                                       \
           if (!_seen[nx * (1 + SIZE) + ny])                     \
@@ -177,8 +172,8 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
       if (  rx == 0
          && ry == 0
-         && in_range (qx)
-         && in_range (qy)
+         && qx >= 0 && qx <= SIZE
+         && qy >= 0 && qy <= SIZE
          )
       {
         os << pos.stone (qx, qy);
