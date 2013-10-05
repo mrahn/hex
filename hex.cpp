@@ -100,11 +100,11 @@ void put (int f)
 {
   if (++_cnt_put % 1000000 == 0)
   {
-    std::cout << "...put " << _cnt_put << std::endl;
+    printf ("...put %lu\n", _cnt_put);
 
     if (_cnt_put >= 100000000)
     {
-      exit (0);
+      exit (EXIT_SUCCESS);
     }
   };
 
