@@ -24,7 +24,7 @@ static unsigned long _cnt_put = 0;
 
 static uint8_t* _taken;
 static uint8_t* _seen;
-static uint8_t* _open;
+static int* _open;
 
 void unput (int f)
 {
@@ -170,15 +170,9 @@ uint8_t _winning()
 
 int main()
 {
-  if (LEN > (8 << sizeof (uint8_t)))
-  {
-    fprintf (stderr, "LEN > (1 << sizeof (uint8_t)\n");
-    exit (EXIT_FAILURE);
-  }
-
   _taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
   _seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  _open = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  _open = (int*) malloc (LEN * LEN * sizeof (int));
 
   if (!_taken || !_seen || !_open)
   {
