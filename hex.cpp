@@ -121,10 +121,6 @@ public:
   {
     return _winner;
   }
-  player_type stone (point_type const& p) const
-  {
-    return _taken[p.x() * (1 + _size) + p.y()];
-  }
   player_type stone (int x, int y) const
   {
     return _taken[x * (1 + _size) + y];
@@ -163,29 +159,35 @@ private:
 
     open.push_back (f);
 
+    _seen[f.x() * (1 + _size) + f.y()] = true;
+
     while (not (open.empty()))
     {
       point_type const p (open.back()); open.pop_back();
 
 #define DO(dx, dy)                                              \
       {                                                         \
-        point_type const n (p + point_type (dx, dy));           \
+        int const nx (p.x() + dx);                              \
+        int const ny (p.y() + dy);                              \
                                                                 \
-        if (in_range (_size, n) && stone (n) == player())       \
+        if (  in_range (_size, nx)                              \
+           && in_range (_size, ny)                              \
+           && stone (nx, ny) == player()                        \
+           )                                                    \
         {                                                       \
-          if (!_seen[n.x() * (1 + _size) + n.y()])              \
+          if (!_seen[nx * (1 + _size) + ny])                    \
           {                                                     \
-            _seen[n.x() * (1 + _size) + n.y()] = true;          \
-                                                                \
-            mi = std::min (mi, (_player == L) ? n.x() : n.y()); \
-            ma = std::max (ma, (_player == L) ? n.x() : n.y()); \
+            mi = std::min (mi, (_player == L) ? nx : ny);       \
+            ma = std::max (ma, (_player == L) ? nx : ny);       \
                                                                 \
             if (mi == 0 && ma == _size)                         \
             {                                                   \
               return _player;                                   \
             }                                                   \
                                                                 \
-            open.push_back (n);                                 \
+            open.push_back (point_type (nx, ny));               \
+                                                                \
+            _seen[nx * (1 + _size) + ny] = true;                \
           }                                                     \
         }                                                       \
       }
@@ -230,7 +232,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
       if (r.x() == 0 && r.y() == 0 && in_range (pos.size(), q))
       {
-        os << pos.stone (q);
+        os << pos.stone (q.x(), q.y());
       }
       else
       {
