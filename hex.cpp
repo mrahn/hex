@@ -17,13 +17,13 @@ typedef uint8_t player_type;
 
 static char const* const show_player[3] = {"L", "R", "."};
 static player_type _player = L;
+static player_type _winner = N;
 
 class position_type
 {
 public:
   position_type ()
-    : _winner (N)
-    , _taken (new player_type[LEN * LEN])
+    : _taken (new player_type[LEN * LEN])
     , _cnt_put (0)
     , _cnt_unput (0)
     , _seen (new bool[LEN * LEN])
@@ -37,10 +37,6 @@ public:
     delete[] _taken;
     delete[] _seen;
     delete[] _open;
-  }
-  player_type winner() const
-  {
-    return _winner;
   }
   player_type stone (int v) const
   {
@@ -132,7 +128,6 @@ private:
     return N;
   }
 
-  player_type _winner;
   player_type* _taken;
 
   unsigned long _cnt_put;
@@ -145,7 +140,7 @@ private:
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
   os << show_player[_player]
-     << show_player[pos.winner()]
+     << show_player[_winner]
      << std::endl;
 
   for (int x (0); x <= 2 * SIZE; ++x)
@@ -179,7 +174,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 
 bool _winning (position_type& pos)
 {
-  if (pos.winner() != N)
+  if (_winner != N)
   {
     return true;
   }
