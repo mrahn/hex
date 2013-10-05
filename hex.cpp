@@ -5,8 +5,6 @@
 
 #include <boost/foreach.hpp>
 
-#define assert(x...)
-
 class point_type
 {
 public:
@@ -138,15 +136,11 @@ public:
   }
   player_type stone (point_type const& p) const
   {
-    assert (in_range (_size, p));
-
     return _taken[p.x() * (1 + _size) + p.y()];
   }
 
   void put (point_type const& f)
   {
-    assert (in_range (_size, f));
-
     if (++_cnt_put % 100000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
@@ -171,8 +165,6 @@ public:
   }
   void unput (point_type const& f)
   {
-    assert (in_range (_size, f));
-
     ++_cnt_unput;
     _winner = N;
     _taken[f.x() * (1 + _size) + f.y()] = N;
