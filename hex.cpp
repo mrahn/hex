@@ -16,13 +16,13 @@ typedef uint8_t player_type;
 #define N 2
 
 static char const* const show_player[3] = {"L", "R", "."};
+static player_type _player = L;
 
 class position_type
 {
 public:
   position_type ()
-    : _player (L)
-    , _winner (N)
+    : _winner (N)
     , _taken (new player_type[LEN * LEN])
     , _cnt_put (0)
     , _cnt_unput (0)
@@ -37,10 +37,6 @@ public:
     delete[] _taken;
     delete[] _seen;
     delete[] _open;
-  }
-  player_type player() const
-  {
-    return _player;
   }
   player_type winner() const
   {
@@ -65,14 +61,14 @@ public:
 
     _winner = winner_from (f);
     _taken[f] = _player;
-    _player = (_player == L) ? R : L;
+    _player = 1 - _player;
   }
   void unput (int f)
   {
     ++_cnt_unput;
     _winner = N;
     _taken[f] = N;
-    _player = (_player == L) ? R : L;
+    _player = 1 - _player;
   }
 
 private:
@@ -136,7 +132,6 @@ private:
     return N;
   }
 
-  player_type _player;
   player_type _winner;
   player_type* _taken;
 
@@ -149,7 +144,7 @@ private:
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
-  os << show_player[pos.player()]
+  os << show_player[_player]
      << show_player[pos.winner()]
      << std::endl;
 
