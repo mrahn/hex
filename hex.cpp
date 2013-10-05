@@ -24,11 +24,6 @@ static unsigned long _cnt_unput = 0;
 
 static uint8_t* _taken;
 
-uint8_t stone (int v)
-{
-  return _taken[v];
-}
-
 void unput (int f)
 {
   ++_cnt_unput;
@@ -155,7 +150,7 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
          && qy >= 0 && qy <= SIZE
          )
       {
-        os << show_player[stone (LIN (qx, qy))];
+        os << show_player[_taken[LIN (qx, qy)]];
       }
       else
       {
@@ -177,7 +172,7 @@ bool _winning (position_type& pos)
 
   for (int f (0); f < LEN * LEN; ++f)
   {
-    if (stone (f) == N)
+    if (_taken[f] == N)
     {
       pos.put (f);
       const bool w (_winning (pos));
@@ -206,7 +201,7 @@ int main()
 
   for (int f (0); f < LEN * LEN; ++f)
   {
-    if (stone (f) == N)
+    if (_taken[f] == N)
     {
       b.put (f);
       if (_winning (b))
