@@ -259,9 +259,7 @@ private:
 
       BOOST_FOREACH (point_type const& n, neighbourN (size(), c.back()))
       {
-        player_type n_pl (stone (n));
-
-        if (n_pl != N && n_pl == player() && seen.insert (n).second)
+        if (stone (n) == player() && seen.insert (n).second)
         {
           open.push_back (n);
         }
