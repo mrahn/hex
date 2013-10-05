@@ -12,7 +12,11 @@
 #define X(f) ((f) / LEN)
 #define Y(f) ((f) % LEN)
 
-enum player_type { L, R, N };
+typedef uint8_t player_type;
+
+#define L 0
+#define R 1
+#define N 2
 
 std::ostream& operator<< (std::ostream& os, const player_type& pl)
 {
