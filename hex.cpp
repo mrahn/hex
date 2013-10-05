@@ -30,7 +30,10 @@ public:
     , _seen (new bool[LEN * LEN])
     , _open (new int[LEN * LEN])
   {
-    std::fill (_taken, _taken + LEN * LEN, N);
+    for (int i (0); i < LEN * LEN; ++i)
+    {
+      _taken[i] = N;
+    }
   }
   ~position_type()
   {
