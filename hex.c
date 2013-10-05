@@ -18,7 +18,7 @@
 
 static char const* const show_player[3] = {"L", "R", "."};
 
-static uint8_t _player = L;
+static uint8_t _player = R;
 static uint8_t _winner = N;
 
 static unsigned long _cnt_put = 0;
