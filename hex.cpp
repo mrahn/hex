@@ -3,8 +3,6 @@
 #include <vector>
 #include <stdexcept>
 
-#include <boost/foreach.hpp>
-
 #ifndef SIZE
 #define SIZE 2
 #endif
