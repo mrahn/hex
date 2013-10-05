@@ -146,20 +146,7 @@ public:
       std::cout << "...put " << _cnt_put << std::endl;
     };
 
-    int mi (proj (_player, f));
-    int ma (proj (_player, f));
-
-    BOOST_FOREACH (point_type const& p, component (f))
-    {
-      mi = std::min (mi, proj (_player, p));
-      ma = std::max (ma, proj (_player, p));
-    }
-
-    if (mi == 0 && ma == size())
-    {
-      _winner = _player;
-    }
-
+    _winner = winner_from (f);
     _taken[f.x() * (1 + _size) + f.y()] = _player;
     _player = other (_player);
   }
@@ -172,51 +159,53 @@ public:
   }
 
 private:
-  points_type component (point_type const& f) const
+  player_type winner_from (point_type const& f) const
   {
-    points_type c;
     std::vector<point_type> open;
 
     std::fill (_seen, _seen + (_size + 1) * (_size + 1), false);
+
+    int mi (proj (_player, f));
+    int ma (proj (_player, f));
 
     open.push_back (f);
 
     while (not (open.empty()))
     {
-      c.push_back (open.back()); open.pop_back();
+      point_type const p (open.back()); open.pop_back();
 
-#define DO                                                      \
-      if (in_range (_size, n) && stone (n) == player())         \
+#define DO(d...)                                                \
       {                                                         \
-        if (!_seen[n.x() * (1 + _size) + n.y()])                \
-        {                                                       \
-          _seen[n.x() * (1 + _size) + n.y()] = true;            \
+        point_type const n (p + point_type (d));                \
                                                                 \
-          open.push_back (n);                                   \
+        if (in_range (_size, n) && stone (n) == player())       \
+        {                                                       \
+          if (!_seen[n.x() * (1 + _size) + n.y()])              \
+          {                                                     \
+            _seen[n.x() * (1 + _size) + n.y()] = true;          \
+                                                                \
+            mi = std::min (mi, proj (_player, n));              \
+            ma = std::max (ma, proj (_player, n));              \
+                                                                \
+            if (mi == 0 && ma == _size)                         \
+            {                                                   \
+              return _player;                                   \
+            }                                                   \
+                                                                \
+            open.push_back (n);                                 \
+          }                                                     \
         }                                                       \
       }
 
-      {
-        point_type const n (c.back() + point_type (0,1)); DO;
-      }
-      {
-        point_type const n (c.back() + point_type (1,1)); DO;
-      }
-      {
-        point_type const n (c.back() + point_type (1,0)); DO;
-      }
-      {
-        point_type const n (c.back() + point_type (0,-1)); DO;
-      }
-      {
-        point_type const n (c.back() + point_type (-1,-1)); DO;
-      }
-      {
-        point_type const n (c.back() + point_type (-1,0)); DO;
-      }
+      DO ( 0, 1);
+      DO ( 1, 1);
+      DO ( 1, 0);
+      DO ( 0,-1);
+      DO (-1,-1);
+      DO (-1, 0);
     }
 
-    return c;
+    return N;
   }
 
   int _size;
