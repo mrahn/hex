@@ -147,7 +147,7 @@ void show()
 #define INS(v)                                            \
   do                                                      \
   {                                                       \
-    JHSI (PValue, *PJHSArray, _taken, LEN * LEN);         \
+    JLI (PValue, *PJArray, Index);                        \
                                                           \
     if (PValue == PJERR)                                  \
     {                                                     \
@@ -159,21 +159,14 @@ void show()
     *PValue = v;                                          \
                                                           \
     ++_cnt_ins;                                           \
+                                                          \
   } while (0)
 
 
-    /* if (_depth < 2)                                       \ */
-    /* {                                                     \ */
-    /*   uint8_t w = _winner;                                \ */
-    /*                                                       \ */
-    /*   _winner = v;                                        \ */
-    /*                                                       \ */
-    /*   show();                                             \ */
-    /*                                                       \ */
-    /*   _winner = w;                                        \ */
-    /* }                                                     \ */
+static Word_t encode[3] = {1,2,0};
+static uint8_t decode[3] = {N,L,R};
 
-uint8_t _winning (Pvoid_t* PJHSArray)
+uint8_t _winning (Pvoid_t* PJArray)
 {
   if (_winner != N)
   {
@@ -181,14 +174,21 @@ uint8_t _winning (Pvoid_t* PJHSArray)
   }
 
   PWord_t PValue;
+  Word_t Index = 0;
 
-  JHSG (PValue, *PJHSArray, _taken, LEN * LEN);
+  for (int i = 0; i < LEN * LEN; ++i)
+  {
+    Index <<= 2;
+    Index += encode[_taken[i]];
+  }
+
+  JLG (PValue, *PJArray, Index);
 
   if (PValue)
   {
     ++_cnt_hit;
 
-    return *PValue == _player;
+    return *PValue == 1 - _player;
   }
 
   for (int f = 0; f < LEN * LEN; ++f)
@@ -196,19 +196,19 @@ uint8_t _winning (Pvoid_t* PJHSArray)
     if (_taken[f] == N)
     {
       put (f);
-      const uint8_t w = _winning (PJHSArray);
+      const uint8_t w = _winning (PJArray);
       unput (f);
 
       if (w)
       {
-        INS (1 - _player);
+        INS (_player);
 
         return 0;
       }
     }
   }
 
-  INS (_player);
+  INS (1 - _player);
 
   return 1;
 }
@@ -230,14 +230,14 @@ int main()
     _taken[i] = N;
   }
 
-  Pvoid_t PJHSArray = (Pvoid_t) NULL;
+  Pvoid_t PJArray = (Pvoid_t) NULL;
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
     if (_taken[f] == N)
     {
       put (f);
-      if (_winning (&PJHSArray))
+      if (_winning (&PJArray))
       {
         show();
       }
@@ -245,9 +245,88 @@ int main()
     }
   }
 
+  if (0)
+  {
+    printf ("= = = =\n");
+
+    Word_t Index = 0;
+    PWord_t PValue;
+
+    JLF (PValue, PJArray, Index);
+
+    while (PValue)
+    {
+      int count[3] = {0,0,0};
+      Word_t g = Index;
+
+      for (int i = 0; i < LEN * LEN; ++i)
+      {
+        ++count[decode[g & 3]];
+        _taken[LEN * LEN - i - 1] = decode[g & 3];
+
+        g >>= 2;
+      }
+      _winner = *PValue;
+      _player = (count[0] > count[1]) ? R : L;
+
+      show();
+
+      JLN (PValue, PJArray, Index);
+    }
+  }
+
+  if (1)
+  {
+    char fname[2][100];
+    sprintf (fname[L], "hex.%i.L.dat", SIZE);
+    sprintf (fname[R], "hex.%i.R.dat", SIZE);
+
+    FILE* dat[2] = { fopen (fname[L], "wb+")
+                   , fopen (fname[R], "wb+")
+                   };
+    int buf_size = 1 << 20;
+    PWord_t buf[2] = { malloc (buf_size * sizeof (Word_t))
+                     , malloc (buf_size * sizeof (Word_t))
+                     };
+    int pos[2] = {0,0};
+
+    if (!dat[L] || !dat[R] || !buf[L] || !buf[R])
+    {
+      fprintf (stderr, "upps\n");
+      exit (EXIT_FAILURE);
+    }
+
+    Word_t Index = 0;
+    PWord_t PValue;
+
+    JLF (PValue, PJArray, Index);
+
+    while (PValue)
+    {
+      buf[*PValue][pos[*PValue]++] = Index;
+
+      if (pos[*PValue] == buf_size)
+      {
+        fwrite (buf[*PValue], sizeof (Word_t), pos[*PValue], dat[*PValue]);
+
+        pos[*PValue] = 0;
+      }
+
+      JLN (PValue, PJArray, Index);
+    }
+
+    fwrite (buf[L], sizeof (Word_t), pos[L], dat[L]);
+    fwrite (buf[R], sizeof (Word_t), pos[R], dat[R]);
+
+    free (buf[L]);
+    free (buf[R]);
+    fclose (dat[L]);
+    fclose (dat[R]);
+  }
+
   Word_t Rc_word;
 
-  JHSFA (Rc_word, PJHSArray);
+  JLFA (Rc_word, PJArray);
 
   printf ( "put %lu ins %lu hit %lu Judy-bytes %lu\n"
          , _cnt_put, _cnt_ins, _cnt_hit, Rc_word
