@@ -2,6 +2,7 @@
 CXXFLAGS += -O3
 CXXFLAGS += -Wall
 CXXFLAGS += -std=c++11
+CXXFLAGS += -DNDEBUG
 
 hex: hex.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $< -o $@
