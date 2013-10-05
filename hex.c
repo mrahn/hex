@@ -20,7 +20,6 @@ static uint8_t _player = L;
 static uint8_t _winner = N;
 
 static unsigned long _cnt_put = 0;
-static unsigned long _cnt_unput = 0;
 
 static uint8_t* _taken;
 static uint8_t* _seen;
@@ -28,7 +27,6 @@ static uint8_t* _open;
 
 void unput (int f)
 {
-  ++_cnt_unput;
   _winner = N;
   _taken[f] = N;
   _player = 1 - _player;
@@ -199,7 +197,7 @@ int main()
     }
   }
 
-  printf ("put %lu unput %lu\n", _cnt_unput, _cnt_unput);
+  printf ("put %lu\n", _cnt_put);
 
   free (_taken);
   free (_seen);
