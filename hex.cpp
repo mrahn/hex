@@ -119,11 +119,9 @@ private:
   }
 };
 
-std::ostream& operator<< (std::ostream& os, position_type const& pos)
+void show()
 {
-  os << show_player[_player]
-     << show_player[_winner]
-     << std::endl;
+  printf ("%s%s\n", show_player[_player], show_player[_winner]);
 
   for (int x (0); x <= 2 * SIZE; ++x)
   {
@@ -141,17 +139,15 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
          && qy >= 0 && qy <= SIZE
          )
       {
-        os << show_player[_taken[LIN (qx, qy)]];
+        printf ("%s", show_player[_taken[LIN (qx, qy)]]);
       }
       else
       {
-        os << " ";
+        printf (" ");
       }
     }
-    os << std::endl;
+    printf ("\n");
   }
-
-  return os;
 }
 
 bool _winning (position_type& pos)
@@ -199,7 +195,7 @@ int main()
       b.put (f);
       if (_winning (b))
       {
-        std::cout << b << std::endl;
+        show();
       }
       unput (f);
     }
