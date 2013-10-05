@@ -67,6 +67,11 @@ public:
     if (++_cnt_put % 1000000 == 0)
     {
       std::cout << "...put " << _cnt_put << std::endl;
+
+      if (_cnt_put >= 100000000)
+      {
+        exit (0);
+      }
     };
 
     _winner = winner_from (f);
