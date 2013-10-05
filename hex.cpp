@@ -29,10 +29,6 @@ private:
   int _y;
 };
 
-bool operator== (point_type const& a, point_type const& b)
-{
-  return a.x() == b.x() && a.y() == b.y();
-}
 std::ostream& operator<< (std::ostream& os, point_type const& p)
 {
   return os << "(" << p.x() << "," << p.y() << ")";
