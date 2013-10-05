@@ -5,7 +5,6 @@
 
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
 
 class point_type
 {
@@ -304,25 +303,20 @@ std::ostream& operator<< (std::ostream& os, position_type const& pos)
 {
   os << pos.player() << pos.winner() << std::endl;
 
-  boost::unordered_set<point_type> rc;
-
-  BOOST_FOREACH (point_type const& f, board (pos.size()))
-  {
-    point_type const r (rect_coord (f));
-
-    rc.insert (r);
-  }
-
   for (int x (0); x <= 2 * pos.size(); ++x)
   {
     for (int y (-2 * pos.size()); y <= 2 * pos.size() ; ++y)
     {
       point_type const p (y, x);
       point_type const h (hex_coord (p));
+      auto const h2 (hex_coord2 (p));
 
-      if (rc.count (p))
+      if (  h2.second.x() == 0
+         && h2.second.y() == 0
+         && in_range (pos.size(), h2.first)
+         )
       {
-        os << pos.stone (h);
+        os << pos.stone (h2.first);
       }
       else
       {
