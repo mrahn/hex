@@ -50,12 +50,6 @@ point_type operator- (point_type const& a, point_type const& b)
 {
   return point_type (a.x() - b.x(), a.y() - b.y());
 }
-point_type rect_coord (point_type const& p)
-{
-  return point_type ( 2 * (p.x() - p.y())
-                    ,      p.x() + p.y()
-                    );
-}
 std::pair<point_type, point_type> hex_coord (point_type const& p)
 {
   return std::make_pair ( point_type ( (2 * p.y() + p.x()) / 4
