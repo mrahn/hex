@@ -27,8 +27,8 @@ class position_type
 public:
   position_type ()
     : _taken (new player_type[LEN * LEN])
-    , _seen (new bool[LEN * LEN])
-    , _open (new int[LEN * LEN])
+    , _seen (new uint8_t[LEN * LEN])
+    , _open (new uint8_t[LEN * LEN])
   {
     for (int i (0); i < LEN * LEN; ++i)
     {
@@ -73,7 +73,7 @@ public:
 private:
   player_type winner_from (int f) const
   {
-    std::fill (_seen, _seen + LEN * LEN, false);
+    std::fill (_seen, _seen + LEN * LEN, 0);
 
     int mi ((_player == L) ? X(f) : Y(f));
     int ma ((_player == L) ? X(f) : Y(f));
@@ -84,7 +84,7 @@ private:
     _open[end++] = X(f);
     _open[end++] = Y(f);
 
-    _seen[f] = true;
+    _seen[f] = 1;
 
     while (pos < end)
     {
@@ -114,7 +114,7 @@ private:
           _open[end++] = (px + dx);                                     \
           _open[end++] = (py + dy);                                     \
                                                                         \
-          _seen[LIN ((px + dx), (py + dy))] = true;                     \
+          _seen[LIN ((px + dx), (py + dy))] = 1;                        \
         }                                                               \
       }                                                                 \
 
@@ -133,8 +133,8 @@ private:
 
   player_type* _taken;
 
-  bool* _seen;
-  int* _open;
+  uint8_t* _seen;
+  uint8_t* _open;
 };
 
 std::ostream& operator<< (std::ostream& os, position_type const& pos)
