@@ -1,7 +1,4 @@
-#include <algorithm>
 #include <iostream>
-#include <vector>
-#include <stdexcept>
 
 #ifndef SIZE
 #define SIZE 2
