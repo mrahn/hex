@@ -15,6 +15,15 @@
 #define X(f) ((f) / LEN)
 #define Y(f) ((f) % LEN)
 
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
+#define L 0
+#define R 1
+#define N 2
+
+static char const* const show_player[3] = {"L", "R", "."};
+
 typedef struct
 {
   uint8_t* seen;
@@ -70,12 +79,6 @@ int not_seen (PState_DFS state, int x, int y)
   return !state->seen[LIN (x, y)];
 }
 
-#define L 0
-#define R 1
-#define N 2
-
-static char const* const show_player[3] = {"L", "R", "."};
-
 typedef struct
 {
   uint8_t player;
@@ -116,9 +119,6 @@ void unput (PPosition_type pos, int f)
   pos->taken[f] = N;
   pos->player = 1 - pos->player;
 }
-
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
 uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
 {
