@@ -41,12 +41,6 @@ void release_state (PState_DFS state)
   free (state->open);
   free (state);
 }
-void push_lin (PState_DFS state, int f)
-{
-  state->open[state->end++] = X(f);
-  state->open[state->end++] = Y(f);
-  state->seen[f] = 1;
-}
 void push (PState_DFS state, int x, int y)
 {
   state->open[state->end++] = x;
@@ -65,7 +59,7 @@ void prepare_state (PState_DFS state, int f)
   }
   state->begin = 0;
   state->end = 0;
-  push_lin (state, f);
+  push (state, X(f), Y(f));
 }
 int not_done (PState_DFS state)
 {
