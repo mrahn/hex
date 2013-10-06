@@ -16,76 +16,96 @@
 #define R 1
 #define N 2
 
-static char const* const show_player[3] = {"L", "R", "."};
+typedef struct
+{
+  uint8_t player;
+  uint8_t winner;
+  uint8_t* taken;
+  uint8_t* seen;
+  int* open;
+} Position_type, *PPosition_type;
 
-static uint8_t _player = R;
-static uint8_t _winner = N;
+PPosition_type new()
+{
+  PPosition_type pos = malloc (sizeof (Position_type));
+  pos->player = R;
+  pos->winner = N;
+  pos->taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  pos->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  pos->open = (int*) malloc (LEN * LEN * sizeof (int));
+  for (int i = 0; i < LEN * LEN; ++i)
+  {
+    pos->taken[i] = N;
+  }
+  return pos;
+}
+void release (PPosition_type pos)
+{
+  free (pos->taken);
+  free (pos->seen);
+  free (pos->open);
+  free (pos);
+}
 
 static unsigned long _cnt_put = 0;
 static unsigned long _cnt_ins = 0;
 static unsigned long _cnt_hit = 0;
 
-static uint8_t* _taken;
-static uint8_t* _seen;
-static int* _open;
-static int _depth = 0;
-
-void unput (int f)
+void unput (PPosition_type pos, int f)
 {
-  _winner = N;
-  _taken[f] = N;
-  _player = 1 - _player;
-  --_depth;
+  pos->winner = N;
+  pos->taken[f] = N;
+  pos->player = 1 - pos->player;
 }
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-uint8_t winner_from (int f)
+uint8_t winner_from (PPosition_type pos, int f)
 {
   for (int i = 0; i < LEN * LEN; ++i)
   {
-    _seen[i] = 0;
+    pos->seen[i] = 0;
   }
 
-  int mi = (_player == L) ? X(f) : Y(f);
-  int ma = (_player == L) ? X(f) : Y(f);
+  int mi = (pos->player == L) ? X(f) : Y(f);
+  int ma = (pos->player == L) ? X(f) : Y(f);
 
-  _open[0] = X(f);
-  _open[1] = Y(f);
+  pos->open[0] = X(f);
+  pos->open[1] = Y(f);
 
-  _seen[f] = 1;
+  pos->seen[f] = 1;
 
-  int pos = 0;
+  int begin = 0;
   int end = 2;
 
-  while (pos < end)
+  while (begin < end)
   {
-    int const px = _open[pos++];
-    int const py = _open[pos++];
+    int const px = pos->open[begin++];
+    int const py = pos->open[begin++];
 
-#define DO(dx, dy)                                              \
-    if (  (px + dx) >= 0 && (px + dx) <= SIZE                   \
-       && (py + dy) >= 0 && (py + dy) <= SIZE                   \
-       && _taken[LIN ((px + dx), (py + dy))] == _player         \
-       )                                                        \
-    {                                                           \
-      if (!_seen[LIN ((px + dx), (py + dy))])                   \
-      {                                                         \
-        mi = MIN (mi, (_player == L) ? (px + dx) : (py + dy));  \
-        ma = MAX (ma, (_player == L) ? (px + dx) : (py + dy));  \
-                                                                \
-        if (mi == 0 && ma == SIZE)                              \
-        {                                                       \
-          return _player;                                       \
-        }                                                       \
-                                                                \
-        _open[end++] = (px + dx);                               \
-        _open[end++] = (py + dy);                               \
-                                                                \
-        _seen[LIN ((px + dx), (py + dy))] = 1;                  \
-      }                                                         \
-    }                                                           \
+#define DO(dx, dy)                                                      \
+    if (  (px + dx) >= 0 && (px + dx) <= SIZE                           \
+       && (py + dy) >= 0 && (py + dy) <= SIZE                           \
+       && pos->taken[LIN ((px + dx), (py + dy))] == pos->player         \
+       )                                                                \
+      {                                                                 \
+        if (!pos->seen[LIN ((px + dx), (py + dy))])                     \
+          {                                                             \
+            mi = MIN (mi, (pos->player == L) ? (px + dx) : (py + dy));  \
+            ma = MAX (ma, (pos->player == L) ? (px + dx) : (py + dy));  \
+                                                                        \
+            if (mi == 0 && ma == SIZE)                                  \
+              {                                                         \
+                return pos->player;                                     \
+              }                                                         \
+                                                                        \
+            pos->open[end++] = (px + dx);                               \
+            pos->open[end++] = (py + dy);                               \
+                                                                        \
+            pos->seen[LIN ((px + dx), (py + dy))] = 1;                  \
+          }                                                             \
+      }                                                                 \
 
     DO ( 0, 1);
     DO ( 1, 1);
@@ -100,22 +120,23 @@ uint8_t winner_from (int f)
   return N;
 }
 
-void put (int f)
+void put (PPosition_type pos, int f)
 {
   if (++_cnt_put % 1000000 == 0)
   {
     fprintf (stderr, "...put %lu\n", _cnt_put);
   };
 
-  _winner = winner_from (f);
-  _taken[f] = _player;
-  _player = 1 - _player;
-  ++_depth;
+  pos->winner = winner_from (pos, f);
+  pos->taken[f] = pos->player;
+  pos->player = 1 - pos->player;
 }
 
-void show()
+void show (PPosition_type pos)
 {
-  printf ("%s%s\n", show_player[_player], show_player[_winner]);
+  static char const* const show_player[3] = {"L", "R", "."};
+
+  printf ("%s%s\n", show_player[pos->player], show_player[pos->winner]);
 
   for (int x = 0; x <= 2 * SIZE; ++x)
   {
@@ -133,7 +154,7 @@ void show()
          && qy >= 0 && qy <= SIZE
          )
       {
-        printf ("%s", show_player[_taken[LIN (qx, qy)]]);
+        printf ("%s", show_player[pos->taken[LIN (qx, qy)]]);
       }
       else
       {
@@ -144,9 +165,41 @@ void show()
   }
 }
 
+Word_t encode (PPosition_type pos)
+{
+  Word_t Index = 0;
+
+  for (int i = 0; i < LEN * LEN; ++i)
+  {
+    Index <<= 2;
+    Index += pos->taken[i];
+  }
+
+  return Index;
+}
+
+PPosition_type decode (Word_t Index, Word_t Value)
+{
+  int count[3] = {0,0,0};
+  PPosition_type pos = new();
+
+  for (int i = 0; i < LEN * LEN; ++i)
+  {
+    ++count[Index & 3];
+    pos->taken[LEN * LEN - i - 1] = Index & 3;
+    Index >>= 2;
+  }
+  pos->winner = Value;
+  pos->player = (count[0] > count[1]) ? R : L;
+
+  return pos;
+}
+
 #define INS(v)                                            \
   do                                                      \
   {                                                       \
+    PWord_t PValue;                                       \
+                                                          \
     JLI (PValue, *PJArray, Index);                        \
                                                           \
     if (PValue == PJERR)                                  \
@@ -163,166 +216,122 @@ void show()
   } while (0)
 
 
-static Word_t encode[3] = {1,2,0};
-static uint8_t decode[3] = {N,L,R};
-
-uint8_t _winning (Pvoid_t* PJArray)
+uint8_t _winning (PPosition_type pos, Pvoid_t* PJArray)
 {
-  if (_winner != N)
+  if (pos->winner != N)
   {
     return 1;
   }
 
-  PWord_t PValue;
-  Word_t Index = 0;
+  Word_t const Index = encode (pos);
 
-  for (int i = 0; i < LEN * LEN; ++i)
   {
-    Index <<= 2;
-    Index += encode[_taken[i]];
-  }
+    PWord_t PValue;
 
-  JLG (PValue, *PJArray, Index);
+    JLG (PValue, *PJArray, Index);
 
-  if (PValue)
-  {
-    ++_cnt_hit;
+    if (PValue)
+    {
+      ++_cnt_hit;
 
-    return *PValue == 1 - _player;
+      return *PValue != pos->player;
+    }
   }
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
-    if (_taken[f] == N)
+    if (pos->taken[f] == N)
     {
-      put (f);
-      const uint8_t w = _winning (PJArray);
-      unput (f);
+      put (pos, f);
+      const uint8_t w = _winning (pos, PJArray);
+      unput (pos, f);
 
       if (w)
       {
-        INS (_player);
+        INS (pos->player);
 
         return 0;
       }
     }
   }
 
-  INS (1 - _player);
+  INS (1 - pos->player);
 
   return 1;
 }
 
-int main()
+void save_pjarray (Pvoid_t PJArray)
 {
-  _taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  _seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  _open = (int*) malloc (LEN * LEN * sizeof (int));
+  char fname[2][100 + 1];
 
-  if (!_taken || !_seen || !_open)
+  snprintf (fname[L], 100, "hex.%i.L.dat", SIZE);
+  snprintf (fname[R], 100, "hex.%i.R.dat", SIZE);
+
+  FILE* dat[2] = { fopen (fname[L], "wb+")
+                 , fopen (fname[R], "wb+")
+                 };
+
+  int const buf_size = 1 << 20;
+
+  PWord_t buf[2] = { malloc (buf_size * sizeof (Word_t))
+                   , malloc (buf_size * sizeof (Word_t))
+                   };
+
+  int buf_pos[2] = {0,0};
+
+  if (!dat[L] || !dat[R] || !buf[L] || !buf[R])
   {
-    fprintf (stderr, "could not allocate memory\n");
+    fprintf (stderr, "upps\n");
     exit (EXIT_FAILURE);
   }
 
-  for (int i = 0; i < LEN * LEN; ++i)
+  Word_t Index = 0;
+  PWord_t PValue;
+
+  JLF (PValue, PJArray, Index);
+
+  while (PValue)
   {
-    _taken[i] = N;
+    buf[*PValue][buf_pos[*PValue]++] = Index;
+
+    if (buf_pos[*PValue] == buf_size)
+    {
+      fwrite (buf[*PValue], sizeof (Word_t), buf_pos[*PValue], dat[*PValue]);
+
+      buf_pos[*PValue] = 0;
+    }
+
+    JLN (PValue, PJArray, Index);
   }
 
+  fwrite (buf[L], sizeof (Word_t), buf_pos[L], dat[L]);
+  fwrite (buf[R], sizeof (Word_t), buf_pos[R], dat[R]);
+
+  free (buf[L]);
+  free (buf[R]);
+  fclose (dat[L]);
+  fclose (dat[R]);
+}
+
+int main()
+{
   Pvoid_t PJArray = (Pvoid_t) NULL;
+  PPosition_type pos = new();
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
-    if (_taken[f] == N)
+    if (pos->taken[f] == N)
     {
-      put (f);
-      if (_winning (&PJArray))
+      put (pos, f);
+      if (_winning (pos, &PJArray))
       {
-        show();
+        show (pos);
       }
-      unput (f);
+      unput (pos, f);
     }
   }
 
-  if (0)
-  {
-    printf ("= = = =\n");
-
-    Word_t Index = 0;
-    PWord_t PValue;
-
-    JLF (PValue, PJArray, Index);
-
-    while (PValue)
-    {
-      int count[3] = {0,0,0};
-      Word_t g = Index;
-
-      for (int i = 0; i < LEN * LEN; ++i)
-      {
-        ++count[decode[g & 3]];
-        _taken[LEN * LEN - i - 1] = decode[g & 3];
-
-        g >>= 2;
-      }
-      _winner = *PValue;
-      _player = (count[0] > count[1]) ? R : L;
-
-      show();
-
-      JLN (PValue, PJArray, Index);
-    }
-  }
-
-  if (1)
-  {
-    char fname[2][100];
-    sprintf (fname[L], "hex.%i.L.dat", SIZE);
-    sprintf (fname[R], "hex.%i.R.dat", SIZE);
-
-    FILE* dat[2] = { fopen (fname[L], "wb+")
-                   , fopen (fname[R], "wb+")
-                   };
-    int buf_size = 1 << 20;
-    PWord_t buf[2] = { malloc (buf_size * sizeof (Word_t))
-                     , malloc (buf_size * sizeof (Word_t))
-                     };
-    int pos[2] = {0,0};
-
-    if (!dat[L] || !dat[R] || !buf[L] || !buf[R])
-    {
-      fprintf (stderr, "upps\n");
-      exit (EXIT_FAILURE);
-    }
-
-    Word_t Index = 0;
-    PWord_t PValue;
-
-    JLF (PValue, PJArray, Index);
-
-    while (PValue)
-    {
-      buf[*PValue][pos[*PValue]++] = Index;
-
-      if (pos[*PValue] == buf_size)
-      {
-        fwrite (buf[*PValue], sizeof (Word_t), pos[*PValue], dat[*PValue]);
-
-        pos[*PValue] = 0;
-      }
-
-      JLN (PValue, PJArray, Index);
-    }
-
-    fwrite (buf[L], sizeof (Word_t), pos[L], dat[L]);
-    fwrite (buf[R], sizeof (Word_t), pos[R], dat[R]);
-
-    free (buf[L]);
-    free (buf[R]);
-    fclose (dat[L]);
-    fclose (dat[R]);
-  }
+  save_pjarray (PJArray);
 
   Word_t Rc_word;
 
@@ -332,7 +341,5 @@ int main()
          , _cnt_put, _cnt_ins, _cnt_hit, Rc_word
          );
 
-  free (_taken);
-  free (_seen);
-  free (_open);
+  release (pos);
 }
