@@ -312,7 +312,6 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 
   return 1;
 }
-#undef INS
 
 #define WRITE(d)                                                        \
   size_t w = fwrite (buf[d], sizeof (Word_t), buf_pos[d], dat[d]);      \
@@ -385,11 +384,67 @@ void save_pjarray (Pvoid_t PJArray)
 }
 #undef WRITE
 
+int load_pjarray (Pvoid_t* PJArray)
+{
+  int const buf_size = (1 << 20);
+
+  for (uint8_t d = L; d < N; ++d)
+  {
+    char fname[100 + 1];
+
+    snprintf (fname, 100, "hex.%i.%s.dat", SIZE, show_player[d]);
+
+    FILE* dat = fopen (fname, "r");
+
+    if (!dat)
+    {
+      fprintf ( stderr, "could not open dat file %s: %s\n"
+              , fname, strerror (errno)
+              );
+
+      return 2;
+    }
+
+    fprintf (stderr, "loading data from %s...\n", fname);
+
+    PWord_t buf = malloc (buf_size * sizeof (Word_t));
+
+    if (!buf)
+    {
+      fprintf (stderr, "could not allocate memory\n");
+
+      return 1;
+    }
+
+    size_t r;
+
+    while ((r = fread (buf, sizeof (Word_t), buf_size, dat)) > 0)
+    {
+      for (size_t i = 0; i < r; ++i)
+      {
+        Word_t Index = buf[i];
+
+        INS (d);
+      }
+    }
+
+    free (buf);
+    fclose (dat);
+  }
+
+  fprintf (stderr, "retrieved %lu games\n", _cnt_ins);
+
+  return 0;
+}
+#undef INS
+
 int main()
 {
   Pvoid_t PJArray = (Pvoid_t) NULL;
   PPosition_type pos = new_position();
   PState_DFS state = new_state();
+
+  load_pjarray (&PJArray);
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
