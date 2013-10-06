@@ -1,6 +1,9 @@
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <string.h>
+
 #include <Judy.h>
 
 #ifndef SIZE
@@ -12,20 +15,83 @@
 #define X(f) ((f) / LEN)
 #define Y(f) ((f) % LEN)
 
+typedef struct
+{
+  uint8_t* seen;
+  int* open;
+  int begin;
+  int end;
+} *PState_DFS;
+
+PState_DFS new_state()
+{
+  PState_DFS state = malloc (sizeof (*state));
+  state->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  state->open = (int*) malloc (LEN * LEN * sizeof (int));
+  if (!state->seen || !state->open)
+  {
+    fprintf (stderr, "could not allocate memory\n");
+    exit (EXIT_FAILURE);
+  }
+  return state;
+}
+void release_state (PState_DFS state)
+{
+  free (state->seen);
+  free (state->open);
+  free (state);
+}
+void push_lin (PState_DFS state, int f)
+{
+  state->open[state->end++] = X(f);
+  state->open[state->end++] = Y(f);
+  state->seen[f] = 1;
+}
+void push (PState_DFS state, int x, int y)
+{
+  state->open[state->end++] = x;
+  state->open[state->end++] = y;
+  state->seen[LIN (x, y)] = 1;
+}
+int pop (PState_DFS state)
+{
+  return state->open[state->begin++];
+}
+void prepare_state (PState_DFS state, int f)
+{
+  for (int i = 0; i < LEN * LEN; ++i)
+  {
+    state->seen[i] = 0;
+  }
+  state->begin = 0;
+  state->end = 0;
+  push_lin (state, f);
+}
+int not_done (PState_DFS state)
+{
+  return state->begin < state->end;
+}
+int not_seen (PState_DFS state, int x, int y)
+{
+  return !state->seen[LIN (x, y)];
+}
+
 #define L 0
 #define R 1
 #define N 2
+
+static char const* const show_player[3] = {"L", "R", "."};
 
 typedef struct
 {
   uint8_t player;
   uint8_t winner;
   uint8_t* taken;
-} Position_type, *PPosition_type;
+} *PPosition_type;
 
 PPosition_type new_position()
 {
-  PPosition_type pos = malloc (sizeof (Position_type));
+  PPosition_type pos = malloc (sizeof (*pos));
   pos->player = R;
   pos->winner = N;
   pos->taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
@@ -46,31 +112,6 @@ void release_position (PPosition_type pos)
   free (pos);
 }
 
-typedef struct
-{
-  uint8_t* seen;
-  int* open;
-} State_DFS, *PState_DFS;
-
-PState_DFS new_state()
-{
-  PState_DFS state = malloc (sizeof (State_DFS));
-  state->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  state->open = (int*) malloc (LEN * LEN * sizeof (int));
-  if (!state->seen || !state->open)
-  {
-    fprintf (stderr, "could not allocate memory\n");
-    exit (EXIT_FAILURE);
-  }
-  return state;
-}
-void release_state (PState_DFS state)
-{
-  free (state->seen);
-  free (state->open);
-  free (state);
-}
-
 static unsigned long _cnt_put = 0;
 static unsigned long _cnt_ins = 0;
 static unsigned long _cnt_hit = 0;
@@ -87,26 +128,15 @@ void unput (PPosition_type pos, int f)
 
 uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
 {
-  for (int i = 0; i < LEN * LEN; ++i)
-  {
-    state->seen[i] = 0;
-  }
+  prepare_state (state, f);
 
   int mi = (pos->player == L) ? X(f) : Y(f);
   int ma = (pos->player == L) ? X(f) : Y(f);
 
-  state->open[0] = X(f);
-  state->open[1] = Y(f);
-
-  state->seen[f] = 1;
-
-  int begin = 0;
-  int end = 2;
-
-  while (begin < end)
+  while (not_done (state))
   {
-    int const px = state->open[begin++];
-    int const py = state->open[begin++];
+    int const px = pop (state);
+    int const py = pop (state);
 
 #define DO(dx, dy)                                                      \
     if (  (px + dx) >= 0 && (px + dx) <= SIZE                           \
@@ -114,7 +144,7 @@ uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
        && pos->taken[LIN ((px + dx), (py + dy))] == pos->player         \
        )                                                                \
     {                                                                   \
-      if (!state->seen[LIN ((px + dx), (py + dy))])                     \
+      if (not_seen (state, px + dx, py + dy))                           \
       {                                                                 \
         mi = MIN (mi, (pos->player == L) ? (px + dx) : (py + dy));      \
         ma = MAX (ma, (pos->player == L) ? (px + dx) : (py + dy));      \
@@ -124,10 +154,7 @@ uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
           return pos->player;                                           \
         }                                                               \
                                                                         \
-        state->open[end++] = (px + dx);                                 \
-        state->open[end++] = (py + dy);                                 \
-                                                                        \
-        state->seen[LIN ((px + dx), (py + dy))] = 1;                    \
+        push (state, px + dx, py + dy);                                 \
       }                                                                 \
     }                                                                   \
 
@@ -158,8 +185,6 @@ void put (PPosition_type pos, PState_DFS state, int f)
 
 void show (PPosition_type pos)
 {
-  static char const* const show_player[3] = {"L", "R", "."};
-
   printf ("%s%s\n", show_player[pos->player], show_player[pos->winner]);
 
   for (int x = 0; x <= 2 * SIZE; ++x)
@@ -284,29 +309,49 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
   return 1;
 }
 
+#define WRITE(d)                                                        \
+  size_t w = fwrite (buf[d], sizeof (Word_t), buf_pos[d], dat[d]);      \
+                                                                        \
+  if (w != buf_pos[d])                                                  \
+  {                                                                     \
+    fprintf (stderr, "write error: %s\n", strerror (errno));            \
+  }                                                                     \
+                                                                        \
+  buf_pos[d] = 0
+
 void save_pjarray (Pvoid_t PJArray)
 {
-  char fname[2][100 + 1];
+  FILE* dat[2];
 
-  snprintf (fname[L], 100, "hex.%i.L.dat", SIZE);
-  snprintf (fname[R], 100, "hex.%i.R.dat", SIZE);
+  int const buf_size = (1 << 20);
 
-  FILE* dat[2] = { fopen (fname[L], "wb+")
-                 , fopen (fname[R], "wb+")
-                 };
-
-  int const buf_size = 1 << 20;
-
-  PWord_t buf[2] = { malloc (buf_size * sizeof (Word_t))
-                   , malloc (buf_size * sizeof (Word_t))
-                   };
-
+  PWord_t buf[2];
   int buf_pos[2] = {0,0};
 
-  if (!dat[L] || !dat[R] || !buf[L] || !buf[R])
+  for (uint8_t d = L; d < N; ++d)
   {
-    fprintf (stderr, "upps\n");
-    exit (EXIT_FAILURE);
+    char fname[100 + 1];
+
+    snprintf (fname, 100, "hex.%i.%s.dat", SIZE, show_player[d]);
+
+    dat[d] = fopen (fname, "wb+");
+
+    if (!dat[d])
+    {
+      fprintf ( stderr, "could not open dat file %s: %s\n"
+              , fname, strerror (errno)
+              );
+
+      exit (EXIT_FAILURE);
+    }
+
+    buf[d] = malloc (buf_size * sizeof (Word_t));
+
+    if (!buf[d])
+    {
+      fprintf (stderr, "could not allocate memory\n");
+      exit (EXIT_FAILURE);
+    }
   }
 
   Word_t Index = 0;
@@ -320,21 +365,18 @@ void save_pjarray (Pvoid_t PJArray)
 
     if (buf_pos[*PValue] == buf_size)
     {
-      fwrite (buf[*PValue], sizeof (Word_t), buf_pos[*PValue], dat[*PValue]);
-
-      buf_pos[*PValue] = 0;
+      WRITE (*PValue);
     }
 
     JLN (PValue, PJArray, Index);
   }
 
-  fwrite (buf[L], sizeof (Word_t), buf_pos[L], dat[L]);
-  fwrite (buf[R], sizeof (Word_t), buf_pos[R], dat[R]);
-
-  free (buf[L]);
-  free (buf[R]);
-  fclose (dat[L]);
-  fclose (dat[R]);
+  for (uint8_t d = L; d < N; ++d)
+  {
+    WRITE (d);
+    free (buf[d]);
+    fclose (dat[d]);
+  }
 }
 
 int main()
