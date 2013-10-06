@@ -302,6 +302,7 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 
   return 1;
 }
+#undef INS
 
 #define WRITE(d)                                                        \
   size_t w = fwrite (buf[d], sizeof (Word_t), buf_pos[d], dat[d]);      \
@@ -372,6 +373,7 @@ void save_pjarray (Pvoid_t PJArray)
     fclose (dat[d]);
   }
 }
+#undef WRITE
 
 int main()
 {
