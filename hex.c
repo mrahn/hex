@@ -249,9 +249,6 @@ PPosition_type decode (Word_t Index, Word_t Value)
   return pos;
 }
 
-void save_pjarray (Pvoid_t PJArray);
-static int loading = 0;
-
 #define INS(k,v)                                          \
   do                                                      \
   {                                                       \
@@ -269,12 +266,6 @@ static int loading = 0;
     *PValue = v;                                          \
                                                           \
     ++_cnt_ins;                                           \
-                                                          \
-    if (!loading && _cnt_ins % 10000000 == 0)             \
-    {                                                     \
-      fprintf (stderr, "saving to disk\n");               \
-      save_pjarray (*PJArray);                            \
-    }                                                     \
                                                           \
   } while (0)
 
@@ -451,9 +442,7 @@ int main()
   PPosition_type pos = new_position();
   PState_DFS state = new_state();
 
-  loading = 1;
   load_pjarray (&PJArray);
-  loading = 0;
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
