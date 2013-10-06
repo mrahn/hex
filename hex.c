@@ -249,25 +249,23 @@ PPosition_type decode (Word_t Index, Word_t Value)
   return pos;
 }
 
-#define INS(k,v)                                          \
-  do                                                      \
-  {                                                       \
-    PWord_t PValue;                                       \
-                                                          \
-    JLI (PValue, *PJArray, k);                            \
-                                                          \
-    if (PValue == PJERR)                                  \
-    {                                                     \
-      fprintf (stderr, "JHSI-Error: Out of memory...\n"); \
-                                                          \
-      exit (EXIT_FAILURE);                                \
-    }                                                     \
-                                                          \
-    *PValue = v;                                          \
-                                                          \
-    ++_cnt_ins;                                           \
-                                                          \
-  } while (0)
+void insert (Pvoid_t* PJArray, Word_t Key, uint8_t Value)
+{
+  PWord_t PValue;
+
+  JLI (PValue, *PJArray, Key);
+
+  if (PValue == PJERR)
+  {
+    fprintf (stderr, "JHSI-Error: Out of memory...\n");
+
+    exit (EXIT_FAILURE);
+  }
+
+  *PValue = Value;
+
+  ++_cnt_ins;
+}
 
 uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 {
@@ -301,14 +299,14 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 
       if (w)
       {
-        INS (Index, pos->player);
+        insert (PJArray, Index, pos->player);
 
         return 0;
       }
     }
   }
 
-  INS (Index, 1 - pos->player);
+  insert (PJArray, Index, 1 - pos->player);
 
   return 1;
 }
@@ -422,7 +420,7 @@ int load_pjarray (Pvoid_t* PJArray)
     {
       for (size_t i = 0; i < r; ++i)
       {
-        INS (buf[i], d);
+        insert (PJArray, buf[i], d);
       }
     }
 
@@ -434,7 +432,6 @@ int load_pjarray (Pvoid_t* PJArray)
 
   return 0;
 }
-#undef INS
 
 int main()
 {
