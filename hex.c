@@ -220,6 +220,7 @@ Word_t encode (PPosition_type pos)
   }
 
   Word_t Mirror = 0;
+
   for (int i = LEN * LEN - 1; i >= 0; --i)
   {
     Mirror <<= 2;
