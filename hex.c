@@ -21,30 +21,54 @@ typedef struct
   uint8_t player;
   uint8_t winner;
   uint8_t* taken;
-  uint8_t* seen;
-  int* open;
 } Position_type, *PPosition_type;
 
-PPosition_type new()
+PPosition_type new_position()
 {
   PPosition_type pos = malloc (sizeof (Position_type));
   pos->player = R;
   pos->winner = N;
   pos->taken = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  pos->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
-  pos->open = (int*) malloc (LEN * LEN * sizeof (int));
+  if (!pos->taken)
+  {
+    fprintf (stderr, "could not allocate memory\n");
+    exit (EXIT_FAILURE);
+  }
   for (int i = 0; i < LEN * LEN; ++i)
   {
     pos->taken[i] = N;
   }
   return pos;
 }
-void release (PPosition_type pos)
+void release_position (PPosition_type pos)
 {
   free (pos->taken);
-  free (pos->seen);
-  free (pos->open);
   free (pos);
+}
+
+typedef struct
+{
+  uint8_t* seen;
+  int* open;
+} State_DFS, *PState_DFS;
+
+PState_DFS new_state()
+{
+  PState_DFS state = malloc (sizeof (State_DFS));
+  state->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
+  state->open = (int*) malloc (LEN * LEN * sizeof (int));
+  if (!state->seen || !state->open)
+  {
+    fprintf (stderr, "could not allocate memory\n");
+    exit (EXIT_FAILURE);
+  }
+  return state;
+}
+void release_state (PState_DFS state)
+{
+  free (state->seen);
+  free (state->open);
+  free (state);
 }
 
 static unsigned long _cnt_put = 0;
@@ -61,51 +85,51 @@ void unput (PPosition_type pos, int f)
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
-uint8_t winner_from (PPosition_type pos, int f)
+uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
 {
   for (int i = 0; i < LEN * LEN; ++i)
   {
-    pos->seen[i] = 0;
+    state->seen[i] = 0;
   }
 
   int mi = (pos->player == L) ? X(f) : Y(f);
   int ma = (pos->player == L) ? X(f) : Y(f);
 
-  pos->open[0] = X(f);
-  pos->open[1] = Y(f);
+  state->open[0] = X(f);
+  state->open[1] = Y(f);
 
-  pos->seen[f] = 1;
+  state->seen[f] = 1;
 
   int begin = 0;
   int end = 2;
 
   while (begin < end)
   {
-    int const px = pos->open[begin++];
-    int const py = pos->open[begin++];
+    int const px = state->open[begin++];
+    int const py = state->open[begin++];
 
 #define DO(dx, dy)                                                      \
     if (  (px + dx) >= 0 && (px + dx) <= SIZE                           \
        && (py + dy) >= 0 && (py + dy) <= SIZE                           \
        && pos->taken[LIN ((px + dx), (py + dy))] == pos->player         \
        )                                                                \
+    {                                                                   \
+      if (!state->seen[LIN ((px + dx), (py + dy))])                     \
       {                                                                 \
-        if (!pos->seen[LIN ((px + dx), (py + dy))])                     \
-          {                                                             \
-            mi = MIN (mi, (pos->player == L) ? (px + dx) : (py + dy));  \
-            ma = MAX (ma, (pos->player == L) ? (px + dx) : (py + dy));  \
+        mi = MIN (mi, (pos->player == L) ? (px + dx) : (py + dy));      \
+        ma = MAX (ma, (pos->player == L) ? (px + dx) : (py + dy));      \
                                                                         \
-            if (mi == 0 && ma == SIZE)                                  \
-              {                                                         \
-                return pos->player;                                     \
-              }                                                         \
+        if (mi == 0 && ma == SIZE)                                      \
+        {                                                               \
+          return pos->player;                                           \
+        }                                                               \
                                                                         \
-            pos->open[end++] = (px + dx);                               \
-            pos->open[end++] = (py + dy);                               \
+        state->open[end++] = (px + dx);                                 \
+        state->open[end++] = (py + dy);                                 \
                                                                         \
-            pos->seen[LIN ((px + dx), (py + dy))] = 1;                  \
-          }                                                             \
+        state->seen[LIN ((px + dx), (py + dy))] = 1;                    \
       }                                                                 \
+    }                                                                   \
 
     DO ( 0, 1);
     DO ( 1, 1);
@@ -120,14 +144,14 @@ uint8_t winner_from (PPosition_type pos, int f)
   return N;
 }
 
-void put (PPosition_type pos, int f)
+void put (PPosition_type pos, PState_DFS state, int f)
 {
   if (++_cnt_put % 1000000 == 0)
   {
     fprintf (stderr, "...put %lu\n", _cnt_put);
   };
 
-  pos->winner = winner_from (pos, f);
+  pos->winner = winner_from (pos, state, f);
   pos->taken[f] = pos->player;
   pos->player = 1 - pos->player;
 }
@@ -181,7 +205,7 @@ Word_t encode (PPosition_type pos)
 PPosition_type decode (Word_t Index, Word_t Value)
 {
   int count[3] = {0,0,0};
-  PPosition_type pos = new();
+  PPosition_type pos = new_position();
 
   for (int i = 0; i < LEN * LEN; ++i)
   {
@@ -216,7 +240,7 @@ PPosition_type decode (Word_t Index, Word_t Value)
   } while (0)
 
 
-uint8_t _winning (PPosition_type pos, Pvoid_t* PJArray)
+uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 {
   if (pos->winner != N)
   {
@@ -242,8 +266,8 @@ uint8_t _winning (PPosition_type pos, Pvoid_t* PJArray)
   {
     if (pos->taken[f] == N)
     {
-      put (pos, f);
-      const uint8_t w = _winning (pos, PJArray);
+      put (pos, state, f);
+      const uint8_t w = _winning (pos, state, PJArray);
       unput (pos, f);
 
       if (w)
@@ -316,14 +340,15 @@ void save_pjarray (Pvoid_t PJArray)
 int main()
 {
   Pvoid_t PJArray = (Pvoid_t) NULL;
-  PPosition_type pos = new();
+  PPosition_type pos = new_position();
+  PState_DFS state = new_state();
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
     if (pos->taken[f] == N)
     {
-      put (pos, f);
-      if (_winning (pos, &PJArray))
+      put (pos, state, f);
+      if (_winning (pos, state, &PJArray))
       {
         show (pos);
       }
@@ -341,5 +366,6 @@ int main()
          , _cnt_put, _cnt_ins, _cnt_hit, Rc_word
          );
 
-  release (pos);
+  release_position (pos);
+  release_state (state);
 }
