@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -218,7 +219,16 @@ Word_t encode (PPosition_type pos)
     Index += pos->taken[i];
   }
 
-  return Index;
+  Word_t Mirror = 0;
+  for (int i = LEN * LEN - 1; i >= 0; --i)
+  {
+    Mirror <<= 2;
+    Mirror += pos->taken[i];
+
+    assert (LEN * LEN - 1 - i == LIN (SIZE - X(i), SIZE - Y(i)));
+  }
+
+  return MIN (Index, Mirror);
 }
 
 PPosition_type decode (Word_t Index, Word_t Value)
