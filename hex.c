@@ -249,12 +249,15 @@ PPosition_type decode (Word_t Index, Word_t Value)
   return pos;
 }
 
-#define INS(v)                                            \
+void save_pjarray (Pvoid_t PJArray);
+static int loading = 0;
+
+#define INS(k,v)                                          \
   do                                                      \
   {                                                       \
     PWord_t PValue;                                       \
                                                           \
-    JLI (PValue, *PJArray, Index);                        \
+    JLI (PValue, *PJArray, k);                            \
                                                           \
     if (PValue == PJERR)                                  \
     {                                                     \
@@ -266,6 +269,12 @@ PPosition_type decode (Word_t Index, Word_t Value)
     *PValue = v;                                          \
                                                           \
     ++_cnt_ins;                                           \
+                                                          \
+    if (!loading && _cnt_ins % 10000000 == 0)             \
+    {                                                     \
+      fprintf (stderr, "saving to disk\n");               \
+      save_pjarray (*PJArray);                            \
+    }                                                     \
                                                           \
   } while (0)
 
@@ -301,14 +310,14 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 
       if (w)
       {
-        INS (pos->player);
+        INS (Index, pos->player);
 
         return 0;
       }
     }
   }
 
-  INS (1 - pos->player);
+  INS (Index, 1 - pos->player);
 
   return 1;
 }
@@ -422,9 +431,7 @@ int load_pjarray (Pvoid_t* PJArray)
     {
       for (size_t i = 0; i < r; ++i)
       {
-        Word_t Index = buf[i];
-
-        INS (d);
+        INS (buf[i], d);
       }
     }
 
@@ -444,7 +451,9 @@ int main()
   PPosition_type pos = new_position();
   PState_DFS state = new_state();
 
+  loading = 1;
   load_pjarray (&PJArray);
+  loading = 0;
 
   for (int f = 0; f < LEN * LEN; ++f)
   {
