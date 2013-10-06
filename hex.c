@@ -7,7 +7,7 @@
 #include <Judy.h>
 
 #ifndef SIZE
-#define SIZE 2
+#error "SIZE not defined"
 #endif
 
 #define LEN (SIZE + 1)
