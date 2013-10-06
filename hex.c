@@ -258,7 +258,6 @@ PPosition_type decode (Word_t Index, Word_t Value)
                                                           \
   } while (0)
 
-
 uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 {
   if (pos->winner != N)
