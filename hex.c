@@ -33,7 +33,7 @@ typedef struct
   int end;
 } *PState_DFS;
 
-PState_DFS new_state()
+static PState_DFS new_state()
 {
   PState_DFS state = malloc (sizeof (*state));
   state->seen = (uint8_t*) malloc (LEN * LEN * sizeof (uint8_t));
@@ -45,23 +45,23 @@ PState_DFS new_state()
   }
   return state;
 }
-void release_state (PState_DFS state)
+static void release_state (PState_DFS state)
 {
   free (state->seen);
   free (state->open);
   free (state);
 }
-void push (PState_DFS state, int x, int y)
+static void push (PState_DFS state, int x, int y)
 {
   state->open[state->end++] = x;
   state->open[state->end++] = y;
   state->seen[LIN (x, y)] = 1;
 }
-int pop (PState_DFS state)
+static int pop (PState_DFS state)
 {
   return state->open[state->begin++];
 }
-void prepare_state (PState_DFS state, int f)
+static void prepare_state (PState_DFS state, int f)
 {
   for (int i = 0; i < LEN * LEN; ++i)
   {
@@ -71,11 +71,11 @@ void prepare_state (PState_DFS state, int f)
   state->end = 0;
   push (state, X(f), Y(f));
 }
-int not_done (PState_DFS state)
+static int not_done (PState_DFS state)
 {
   return state->begin < state->end;
 }
-int not_seen (PState_DFS state, int x, int y)
+static int not_seen (PState_DFS state, int x, int y)
 {
   return !state->seen[LIN (x, y)];
 }
@@ -87,7 +87,7 @@ typedef struct
   uint8_t* taken;
 } *PPosition_type;
 
-PPosition_type new_position()
+static PPosition_type new_position()
 {
   PPosition_type pos = malloc (sizeof (*pos));
   pos->player = R;
@@ -104,7 +104,7 @@ PPosition_type new_position()
   }
   return pos;
 }
-void release_position (PPosition_type pos)
+static void release_position (PPosition_type pos)
 {
   free (pos->taken);
   free (pos);
@@ -114,14 +114,14 @@ static unsigned long _cnt_put = 0;
 static unsigned long _cnt_ins = 0;
 static unsigned long _cnt_hit = 0;
 
-void unput (PPosition_type pos, int f)
+static void unput (PPosition_type pos, int f)
 {
   pos->winner = N;
   pos->taken[f] = N;
   pos->player = 1 - pos->player;
 }
 
-uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
+static uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
 {
   prepare_state (state, f);
 
@@ -166,7 +166,7 @@ uint8_t winner_from (PPosition_type pos, PState_DFS state, int f)
   return N;
 }
 
-void put (PPosition_type pos, PState_DFS state, int f)
+static void put (PPosition_type pos, PState_DFS state, int f)
 {
   if (++_cnt_put % 1000000 == 0)
   {
@@ -178,7 +178,7 @@ void put (PPosition_type pos, PState_DFS state, int f)
   pos->player = 1 - pos->player;
 }
 
-void show (PPosition_type pos)
+static void show (PPosition_type pos)
 {
   printf ("%s%s\n", show_player[pos->player], show_player[pos->winner]);
 
@@ -209,7 +209,7 @@ void show (PPosition_type pos)
   }
 }
 
-Word_t encode (PPosition_type pos)
+static Word_t encode (PPosition_type pos)
 {
   Word_t Index = 0;
 
@@ -232,7 +232,7 @@ Word_t encode (PPosition_type pos)
   return MIN (Index, Mirror);
 }
 
-PPosition_type decode (Word_t Index, Word_t Value)
+static PPosition_type decode (Word_t Index, Word_t Value)
 {
   int count[3] = {0,0,0};
   PPosition_type pos = new_position();
@@ -249,7 +249,7 @@ PPosition_type decode (Word_t Index, Word_t Value)
   return pos;
 }
 
-void insert (Pvoid_t* PJArray, Word_t Key, uint8_t Value)
+static void insert (Pvoid_t* PJArray, Word_t Key, Word_t Value)
 {
   PWord_t PValue;
 
@@ -267,7 +267,7 @@ void insert (Pvoid_t* PJArray, Word_t Key, uint8_t Value)
   ++_cnt_ins;
 }
 
-uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
+static uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
 {
   if (pos->winner != N)
   {
@@ -321,7 +321,7 @@ uint8_t _winning (PPosition_type pos, PState_DFS state, Pvoid_t* PJArray)
                                                                         \
   buf_pos[d] = 0
 
-void save_pjarray (Pvoid_t PJArray)
+static void save_pjarray (Pvoid_t PJArray)
 {
   FILE* dat[2];
 
@@ -382,7 +382,7 @@ void save_pjarray (Pvoid_t PJArray)
 }
 #undef WRITE
 
-int load_pjarray (Pvoid_t* PJArray)
+static int load_pjarray (Pvoid_t* PJArray)
 {
   int const buf_size = (1 << 20);
 
